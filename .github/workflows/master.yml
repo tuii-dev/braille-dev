@@ -54,9 +54,16 @@ jobs:
         working-directory: infrastructure/shared
         run: |
           terraform apply -auto-approve
-          echo "ecr_url=$(terraform output -raw ECR_REPOSITORY_URL)" >> $GITHUB_OUTPUT
-          echo "ci_user_access_key_id=$(terraform output -raw CI_USER_ACCESS_KEY_ID)" >> $GITHUB_OUTPUT
-          echo "ci_user_access_secret_key=$(terraform output -raw CI_USER_ACCESS_KEY_SECRET)" >> $GITHUB_OUTPUT
+          
+          # Store outputs in variables first
+          ECR_URL="$(terraform output -raw ECR_REPOSITORY_URL)"
+          CI_KEY_ID="$(terraform output -raw CI_USER_ACCESS_KEY_ID)"
+          CI_KEY_SECRET="$(terraform output -raw CI_USER_ACCESS_KEY_SECRET)"
+          
+          # Write to GITHUB_OUTPUT using proper escaping
+          echo "ecr_url=$ECR_URL" >> $GITHUB_OUTPUT
+          echo "ci_user_access_key_id=$CI_KEY_ID" >> $GITHUB_OUTPUT
+          echo "ci_user_access_secret_key=$CI_KEY_SECRET" >> $GITHUB_OUTPUT
         env:
           TF_LOG_LEVEL: INFO # Ensures debug logs don't interfere with outputs
 
