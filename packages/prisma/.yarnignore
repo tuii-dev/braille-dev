@@ -1,0 +1,6 @@
+src
+.env
+node_modules
+*.ts
+tsconfig.json
+prisma/migrations

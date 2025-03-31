@@ -1,0 +1,44 @@
+name: "Services"
+description: "Core services"
+inputs:
+  TF_TOKEN:
+    required: true
+    description: "The Terraform Cloud API token"
+  WORKSPACE:
+    required: true
+    description: "The Terraform workspace to use"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_wrapper: false
+        cli_config_credentials_token: ${{ inputs.TF_TOKEN }}
+
+    - name: Terraform Init
+      id: init
+      working-directory: infrastructure/services
+      shell: bash
+      run: terraform init
+      env:
+        TF_WORKSPACE: ${{ inputs.WORKSPACE }}
+
+    - name: Terraform Workspace
+      id: workspace
+      working-directory: infrastructure/services
+      shell: bash
+      run: terraform workspace select -or-create ${{ inputs.WORKSPACE }}
+
+    - name: Terraform Validate
+      id: validate
+      working-directory: infrastructure/services
+      shell: bash
+      run: terraform validate -no-color
+
+    - name: Terraform Apply
+      id: apply
+      working-directory: infrastructure/services
+      shell: bash
+      run: |
+        terraform apply -auto-approve

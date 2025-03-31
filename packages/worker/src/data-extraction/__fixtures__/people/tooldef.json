@@ -1,0 +1,81 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_information",
+      "description": "Get structured information from the content.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "4YvWp_VE82svXcCzczYF-": {
+            "type": "array",
+            "description": "People",
+            "items": {
+              "type": "object",
+              "description": "An instance of People",
+              "properties": {
+                "9RibMWoPw_6ZOLmXBPwxO": {
+                  "type": "array",
+                  "description": "Children",
+                  "items": {
+                    "type": "object",
+                    "description": "An instance of Children",
+                    "properties": {
+                      "48xcbxvIDmqirBM6CLzCI": {
+                        "type": "array",
+                        "description": "Friends",
+                        "items": {
+                          "type": "object",
+                          "description": "An instance of Friends",
+                          "properties": {
+                            "WTXKBgBQ0LkZWQv8L563E": {
+                              "type": "array",
+                              "description": "Pets",
+                              "items": {
+                                "type": "object",
+                                "description": "An instance of Pets",
+                                "properties": {
+                                  "1_5PgtUfzQTydF0lMoN1k": {
+                                    "type": "string",
+                                    "description": "Name"
+                                  },
+                                  "5Xd2soIlEz-CvFRK3BiyG": {
+                                    "type": "string",
+                                    "description": "Animal (one of: Cat, Dog)",
+                                    "enum": ["Cat", "Dog"]
+                                  }
+                                }
+                              }
+                            },
+                            "_M9Ux97qnk2HD-dmDiW70": {
+                              "type": "string",
+                              "description": "Name"
+                            },
+                            "9oavw8F9MfZoGVFhuRFy4": {
+                              "type": "string",
+                              "description": "Hair Colour (one of: Brown, Blonde, Black)",
+                              "enum": ["Brown", "Blonde", "Black"]
+                            }
+                          }
+                        }
+                      },
+                      "_Ro97IXdznc_eVlq2wrq1": {
+                        "type": "string",
+                        "description": "Name"
+                      }
+                    }
+                  }
+                },
+                "gGhFWdTYC8-KvYWHGf6vo": {
+                  "type": "string",
+                  "description": "Name"
+                }
+              }
+            }
+          }
+        },
+        "required": []
+      }
+    }
+  }
+]

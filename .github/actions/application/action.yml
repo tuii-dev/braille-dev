@@ -1,0 +1,51 @@
+name: "Application"
+description: "Deploy application"
+inputs:
+  TF_TOKEN:
+    required: true
+    description: "The Terraform Cloud API token"
+  WORKSPACE:
+    required: true
+    description: "The Terraform workspace to use"
+  ECR_URL:
+    required: true
+    description: "The ECR URL to deploy the image to"
+  IMAGE_SHA:
+    required: true
+    description: "The commit SHA of the image to deploy"
+runs:
+  using: "composite"
+  steps:
+    - uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_wrapper: false
+        cli_config_credentials_token: ${{ inputs.TF_TOKEN }}
+
+    - name: Terraform Init
+      id: init
+      run: terraform init
+      working-directory: infrastructure/app
+      shell: bash
+      env:
+        TF_WORKSPACE: ${{ inputs.WORKSPACE }}
+
+    - name: Terraform Workspace
+      id: workspace
+      run: terraform workspace select -or-create ${{ inputs.WORKSPACE }}
+      shell: bash
+      working-directory: infrastructure/app
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+      shell: bash
+      working-directory: infrastructure/app
+
+    - name: Terraform Apply
+      id: apply
+      working-directory: infrastructure/app
+      shell: bash
+      run: |
+        echo 'application_image="${{ inputs.ECR_URL }}:application_${{ inputs.IMAGE_SHA }}"' >> terraform.auto.tfvars
+        echo 'worker_image="${{ inputs.ECR_URL }}:worker_${{ inputs.IMAGE_SHA }}"' >> terraform.auto.tfvars
+        terraform apply -auto-approve

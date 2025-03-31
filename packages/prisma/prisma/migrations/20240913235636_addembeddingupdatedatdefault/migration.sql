@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Embedding" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "EntityEmbedding" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;

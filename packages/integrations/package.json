@@ -1,0 +1,20 @@
+{
+  "name": "@jptr/braille-integrations",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "migrate": "npx ts-node .bin/migrate",
+    "dev": "tsc -b && yarn copyfiles",
+    "copyfiles": "copyfiles integrations/*.yaml dist/",
+    "build": "tsc -b && yarn copyfiles",
+    "generate": "docker run --rm -v $(pwd)/integrations:/docs openapitools/openapi-generator-cli generate -i /docs/quickbooks.yaml -g openapi -o /docs"
+  },
+  "dependencies": {
+    "@jptr/braille-prisma": "^1.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "copyfiles": "^2.4.1",
+    "js-yaml": "^4.1.0",
+    "typescript": "^4.3.5",
+    "zod": "^3.23.8"
+  }
+}

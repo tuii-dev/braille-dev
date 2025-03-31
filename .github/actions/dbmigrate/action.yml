@@ -1,0 +1,56 @@
+name: "Database Migration"
+description: "Migrate the database"
+inputs:
+  TF_TOKEN:
+    required: true
+    description: "The Terraform Cloud API token"
+  WORKSPACE:
+    required: true
+    description: "The Terraform workspace to use"
+  BASTION_PRIVATE_KEY:
+    required: true
+    description: "The private key to use to connect to the bastion host"
+outputs:
+  DATABASE_URL:
+    description: "The database URL"
+    value: ${{ steps.apply.outputs.DATABASE_URL }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_wrapper: false
+        cli_config_credentials_token: ${{ inputs.TF_TOKEN }}
+
+    - name: Expose Database URL
+      id: database_url
+      working-directory: infrastructure/services
+      shell: bash
+      run: |
+        terraform init
+        echo "BASTION_IP=$(terraform output -raw BASTION_IP)" >> $GITHUB_ENV
+        echo "DATABASE_ENDPOINT=$(terraform output -raw DATABASE_ENDPOINT)" >> $GITHUB_ENV
+        echo "POSTGRES_PRISMA_URL=$(terraform output -raw MIGRATION_URL)" >> $GITHUB_ENV
+      env:
+        TF_WORKSPACE: ${{ inputs.WORKSPACE }}
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ inputs.BASTION_PRIVATE_KEY }}
+
+    - name: Add bastion host to known_hosts
+      shell: bash
+      run: ssh-keyscan -H $BASTION_IP >> ~/.ssh/known_hosts
+
+    - name: Create SSH tunnel to RDS
+      shell: bash
+      run: |
+        ssh -f -N -L 5432:$DATABASE_ENDPOINT ec2-user@$BASTION_IP
+
+    - name: Database Migrate
+      id: migrate
+      working-directory: packages/prisma
+      shell: bash
+      run: npx prisma migrate deploy

@@ -1,0 +1,111 @@
+version: "3.7"
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: dbmaster
+      POSTGRES_PASSWORD: dbpassword
+      POSTGRES_DB: application
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
+      # - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: mschmidt@jptrsoftware.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    restart: unless-stopped
+    volumes:
+      - "./volumes/pgadmin/servers.json:/pgadmin4/servers.json"
+
+  redis:
+    image: bitnami/redis:latest
+    ports:
+      - "6379:6379"
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME:-localstack-main}"
+    image: localstack/localstack
+    ports:
+      - "127.0.0.1:4566:4566" # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559" # external services port range
+    environment:
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=${DEBUG:-0}
+      - DISABLE_CORS_CHECKS=1
+      - ENABLE_CONFIG_UPDATES=1
+    volumes:
+      - "./volumes/localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  mocks:
+    image: thiht/smocker
+    ports:
+      - "44300:8080"
+      - "44301:8081"
+    environment:
+      - SMOCKER_TLS_ENABLE=true
+    volumes:
+      - "./volumes/smoker:/etc/smocker"
+      - "./volumes/certs/cert.pem:/etc/smocker/tls/certs/cert.pem:ro"
+      - "./volumes/certs/key.pem:/etc/smocker/tls/private/key.pem:ro"
+
+  # Jaeger
+  jaeger-all-in-one:
+    image: jaegertracing/all-in-one:latest
+    restart: always
+    ports:
+      - "16686:16686"
+      - "14268"
+      - "14250"
+
+  # Zipkin
+  zipkin-all-in-one:
+    image: openzipkin/zipkin:latest
+    restart: always
+    ports:
+      - "9411:9411"
+
+  # Collector
+  otel-collector:
+    image: otel/opentelemetry-collector:0.67.0
+    restart: always
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "1888:1888" # pprof extension
+      - "8888:8888" # Prometheus metrics exposed by the collector
+      - "8889:8889" # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+      - "55679:55679" # zpages extension
+    depends_on:
+      - jaeger-all-in-one
+      - zipkin-all-in-one
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    restart: always
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+# networks:
+#   default:
+#     external:
+#       name: "localstack"

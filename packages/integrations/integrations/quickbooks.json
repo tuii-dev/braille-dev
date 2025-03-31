@@ -1,0 +1,684 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Quickbooks API",
+    "version": "0.0.0"
+  },
+  "servers": [
+    {
+      "description": "Quickbooks Production API",
+      "url": "https://quickbooks.api.intuit.com",
+      "x-environment": "prod"
+    },
+    {
+      "description": "Quickbooks Sandbox API",
+      "url": "https://sandbox-quickbooks.api.intuit.com",
+      "x-environment": "dev"
+    }
+  ],
+  "security": [
+    {
+      "OpenID": [
+        "com.intuit.quickbooks.accounting",
+        "openid",
+        "profile",
+        "email",
+        "address"
+      ]
+    }
+  ],
+  "paths": {
+    "/v3/company/{realmId}/bill": {
+      "post": {
+        "parameters": [
+          {
+            "description": "The company ID",
+            "explode": false,
+            "in": "path",
+            "name": "realmId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "description": "The minor version",
+            "explode": true,
+            "in": "query",
+            "name": "minorversion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "form"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBill"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Created"
+          }
+        },
+        "summary": "Create a bill"
+      }
+    },
+    "/v3/company/{realmId}/query": {
+      "get": {
+        "description": "Query for entities",
+        "operationId": "query",
+        "parameters": [
+          {
+            "description": "The company ID",
+            "explode": false,
+            "in": "path",
+            "name": "realmId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "description": "The minor version",
+            "explode": true,
+            "in": "query",
+            "name": "minorversion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Search term",
+            "explode": true,
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/query_200_response"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        }
+      },
+      "summary": "Query for any and all entities"
+    }
+  },
+  "components": {
+    "schemas": {
+      "BaseVendor": {
+        "properties": {
+          "Title": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "BaseCustomer": {
+        "description": "A customer who purchases goods or services from a business.",
+        "properties": {
+          "DisplayName": {
+            "description": "The name of the person or organization as displayed.",
+            "title": "Display Name",
+            "type": "string"
+          },
+          "CompanyName": {
+            "description": "The name of the company.",
+            "title": "Company Name",
+            "type": "string"
+          },
+          "Suffix": {
+            "description": "Suffix of the name. For example, Jr. The DisplayName attribute or at least one of Title, GivenName, MiddleName, FamilyName, or Suffix attributes is required for object create.",
+            "title": "Suffix",
+            "type": "string"
+          },
+          "Title": {
+            "description": "Title of the person",
+            "title": "Title",
+            "type": "string"
+          },
+          "GivenName": {
+            "description": "Given name or first name of a person.",
+            "title": "Given Name",
+            "type": "string"
+          }
+        },
+        "title": "Customer",
+        "type": "object"
+      },
+      "Customer": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseCustomer"
+          },
+          {
+            "description": "A customer who purchases goods or services from a business.",
+            "properties": {
+              "Id": {
+                "description": "Unique identifier for this customer.",
+                "type": "string",
+                "x-primary-key": true
+              },
+              "SyncToken": {
+                "description": "Version number of the object. It is used to lock an object for use by one app at a time.",
+                "type": "string"
+              }
+            },
+            "title": "Customer",
+            "type": "object"
+          }
+        ],
+        "x-braille-ui": {
+          "templates": {
+            "Option": {
+              "label": "{{DisplayName}}",
+              "sublabel": "{{BillAddr.Line1}}{{#if BillAddr.City}}, {{BillAddr.City}}{{/if}}"
+            }
+          }
+        }
+      },
+      "Vendor": {
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "properties": {
+          "Title": {
+            "description": "The name of the vendor.",
+            "title": "Title",
+            "type": "string"
+          },
+          "Id": {
+            "type": "string",
+            "x-primary-key": true
+          }
+        },
+        "title": "Vendor",
+        "type": "object",
+        "x-braille-ui": {
+          "templates": {
+            "Option": {
+              "label": "{{PrintOnCheckName}}",
+              "sublabel": "{{PrimaryEmailAddr.Address}}"
+            }
+          }
+        }
+      },
+      "Account": {
+        "properties": {
+          "Id": {
+            "description": "Unique identifier for this account.",
+            "title": "Account ID",
+            "type": "string",
+            "x-primary-key": true
+          },
+          "Name": {
+            "description": "User recognizable name for the Account.",
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "title": "Account",
+        "type": "object",
+        "x-braille-ui": {
+          "templates": {
+            "Option": {
+              "label": "{{Name}}",
+              "sublabel": "{{AccountType}}{{#if AccountSubType}} — {{AccountSubType}}{{/if}}"
+            }
+          }
+        }
+      },
+      "BaseLine": {
+        "description": "A line item on a bill.",
+        "properties": {
+          "DetailType": {
+            "enum": ["AccountBasedExpenseLineDetail"],
+            "title": "Detail Type",
+            "type": "string"
+          },
+          "Amount": {
+            "description": "The amount of the line item.",
+            "title": "Amount",
+            "type": "number"
+          },
+          "AccountBasedExpenseLineDetail": {
+            "$ref": "#/components/schemas/Line_Detail"
+          },
+          "Description": {
+            "description": "Free form text description of the line item that appears in the printed record.",
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": ["AccountBasedExpenseLineDetail", "Amount", "DetailType"],
+        "title": "Bill Line Item",
+        "type": "object",
+        "x-braille-ui": {
+          "fields": [
+            {
+              "path": "/Amount"
+            },
+            {
+              "path": "/Description"
+            },
+            {
+              "path": "/AccountBasedExpenseLineDetail/AccountRef/value",
+              "label": "Account"
+            },
+            {
+              "path": "/AccountBasedExpenseLineDetail/CustomerRef/value",
+              "label": "Customer"
+            }
+          ]
+        }
+      },
+      "UpdateLine": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseLine"
+          },
+          {
+            "description": "A line item on a bill.",
+            "properties": {
+              "Id": {
+                "description": "The Id of the line item.",
+                "type": "string",
+                "x-primary-key": true
+              }
+            },
+            "title": "Bill Line Item",
+            "type": "object"
+          }
+        ]
+      },
+      "BaseBill": {
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "properties": {
+          "VendorRef": {
+            "$ref": "#/components/schemas/Bill_Vendor"
+          },
+          "TxnDate": {
+            "description": "The date the Transaction occurred.",
+            "format": "date",
+            "title": "Transaction Date",
+            "type": "string",
+            "x-braille-order": 1
+          },
+          "DueDate": {
+            "description": "Date when the payment of the transaction is due.",
+            "format": "date",
+            "title": "Due Date",
+            "type": "string",
+            "x-braille-order": 2
+          },
+          "Line": {
+            "description": "The line items for the bill.",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/BaseLine"
+                }
+              ]
+            },
+            "title": "Lines",
+            "type": "array",
+            "x-braille-order": 3
+          }
+        },
+        "required": ["Line", "VendorRef"],
+        "title": "Bill",
+        "type": "object",
+        "x-braille-ui": {
+          "fields": [
+            {
+              "path": "/VendorRef/value",
+              "label": "Bill Vendor"
+            },
+            {
+              "path": "/TxnDate"
+            },
+            {
+              "path": "/DueDate"
+            },
+            {
+              "path": "/Line"
+            }
+          ]
+        }
+      },
+      "Bill": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseBill"
+          },
+          {
+            "description": "A request-for-payment from a vendor for goods or services rendered.",
+            "properties": {
+              "Id": {
+                "description": "The Id of the line item.",
+                "type": "string",
+                "x-primary-key": true
+              }
+            },
+            "title": "Bill",
+            "type": "object"
+          }
+        ],
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "title": "Bill",
+        "x-entity": "Bill"
+      },
+      "CreateBill": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseBill"
+          }
+        ],
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "title": "Bill",
+        "x-entity": "Bill"
+      },
+      "UpdateBill": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Bill"
+          },
+          {
+            "properties": {
+              "SyncToken": {
+                "description": "The sync token for the object. Required for updating the object, otherwise ignored.",
+                "type": "string"
+              },
+              "Line": {
+                "items": {
+                  "$ref": "#/components/schemas/UpdateBill_allOf_Line"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          }
+        ],
+        "x-entity": "Bill"
+      },
+      "query_200_response_QueryResponse": {
+        "properties": {
+          "startPosition": {
+            "type": "number"
+          },
+          "maxResults": {
+            "type": "number"
+          },
+          "Account": {
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            },
+            "type": "array"
+          },
+          "Vendor": {
+            "items": {
+              "$ref": "#/components/schemas/Vendor"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "query_200_response": {
+        "properties": {
+          "QueryResponse": {
+            "$ref": "#/components/schemas/query_200_response_QueryResponse"
+          }
+        },
+        "type": "object"
+      },
+      "Account_1": {
+        "description": "The account associated with the line item.",
+        "properties": {
+          "value": {
+            "description": "The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.",
+            "title": "Account ID",
+            "type": "string",
+            "x-foreign-key": "Account.Id"
+          }
+        },
+        "required": ["value"],
+        "title": "Account",
+        "type": "object"
+      },
+      "Customer_1": {
+        "description": "The customer associated with the line item.",
+        "properties": {
+          "value": {
+            "description": "The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.",
+            "title": "Customer Id",
+            "type": "string",
+            "x-foreign-key": "Customer.Id"
+          }
+        },
+        "required": ["value"],
+        "title": "Customer",
+        "type": "object"
+      },
+      "Line_Detail": {
+        "description": "The account-based expense details of the line item.",
+        "properties": {
+          "AccountRef": {
+            "$ref": "#/components/schemas/Account_1"
+          },
+          "CustomerRef": {
+            "$ref": "#/components/schemas/Customer_1"
+          }
+        },
+        "required": ["AccountRef", "CustomerRef"],
+        "title": "Line Detail",
+        "type": "object"
+      },
+      "Bill_Vendor": {
+        "description": "The vendor who sent the invoice / produced the bill.",
+        "properties": {
+          "value": {
+            "description": "The ID for the referenced object as found in the Id field of the object payload.",
+            "title": "Vendor ID",
+            "type": "string",
+            "x-foreign-key": "Vendor.Id"
+          }
+        },
+        "required": ["value"],
+        "title": "Bill Vendor",
+        "type": "object",
+        "x-braille-order": 0
+      },
+      "UpdateBill_allOf_Line": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UpdateLine"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "OpenID": {
+        "openIdConnectUrl": "https://developer.api.intuit.com/.well-known/openid_sandbox_configuration",
+        "type": "openIdConnect"
+      }
+    }
+  },
+  "x-braille": {
+    "application": {
+      "name": "Quickbooks"
+    },
+    "configuration": {
+      "arguments": {
+        "computed": [
+          {
+            "name": "realmId",
+            "value": "$.id_token_claims.realmid"
+          }
+        ],
+        "static": [
+          {
+            "name": "minorversion",
+            "value": "70"
+          }
+        ]
+      }
+    },
+    "entities": {
+      "Vendor": {
+        "schema": {
+          "$ref": "#/components/schemas/Vendor"
+        },
+        "actions": [
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "spec": {
+              "$ref": "#"
+            },
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Vendor"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Vendor[*]"
+            }
+          }
+        ]
+      },
+      "Account": {
+        "schema": {
+          "$ref": "#/components/schemas/Account"
+        },
+        "actions": [
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "spec": {
+              "$ref": "#"
+            },
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Account"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Account[*]"
+            }
+          }
+        ]
+      },
+      "Customer": {
+        "schema": {
+          "$ref": "#/components/schemas/Customer"
+        },
+        "actions": [
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "spec": {
+              "$ref": "#"
+            },
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Customer"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Customer[*]"
+            }
+          }
+        ]
+      },
+      "Bill": {
+        "schema": {
+          "$ref": "#/components/schemas/Bill"
+        },
+        "actions": [
+          {
+            "key": "create",
+            "type": "OpenAPI",
+            "spec": {
+              "$ref": "#"
+            },
+            "request": {
+              "path": "/v3/company/{realmId}/bill",
+              "method": "post"
+            },
+            "response": {
+              "item": "$.Bill"
+            }
+          },
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "spec": {
+              "$ref": "#"
+            },
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Bill"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Bill[*]"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

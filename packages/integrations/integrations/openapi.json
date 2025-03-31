@@ -1,0 +1,937 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Quickbooks API",
+    "version": "0.0.0"
+  },
+  "servers": [
+    {
+      "description": "Quickbooks Production API",
+      "url": "https://quickbooks.api.intuit.com",
+      "x-environment": "prod"
+    },
+    {
+      "description": "Quickbooks Sandbox API",
+      "url": "https://sandbox-quickbooks.api.intuit.com",
+      "x-environment": "dev"
+    }
+  ],
+  "security": [
+    {
+      "OpenID": [
+        "com.intuit.quickbooks.accounting",
+        "openid",
+        "profile",
+        "email",
+        "address"
+      ]
+    }
+  ],
+  "paths": {
+    "/v3/company/{realmId}/bill": {
+      "post": {
+        "operationId": "createBill",
+        "parameters": [
+          {
+            "description": "The company ID",
+            "explode": false,
+            "in": "path",
+            "name": "realmId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "description": "The minor version",
+            "explode": true,
+            "in": "query",
+            "name": "minorversion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "form"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBill"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Created"
+          }
+        },
+        "summary": "Create a bill"
+      }
+    },
+    "/v3/company/{realmId}/query": {
+      "get": {
+        "description": "Query for entities",
+        "operationId": "query",
+        "parameters": [
+          {
+            "description": "The company ID",
+            "explode": false,
+            "in": "path",
+            "name": "realmId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "description": "The minor version",
+            "explode": true,
+            "in": "query",
+            "name": "minorversion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Search term",
+            "explode": true,
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/query_200_response"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        }
+      },
+      "summary": "Query for any and all entities"
+    }
+  },
+  "components": {
+    "schemas": {
+      "BaseVendor": {
+        "properties": {
+          "Title": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "BaseCustomer": {
+        "description": "A customer who purchases goods or services from a business.",
+        "properties": {
+          "DisplayName": {
+            "description": "The name of the person or organization as displayed.",
+            "title": "Display Name",
+            "type": "string"
+          },
+          "CompanyName": {
+            "description": "The name of the company.",
+            "title": "Company Name",
+            "type": "string"
+          },
+          "Suffix": {
+            "description": "Suffix of the name. For example, Jr. The DisplayName attribute or at least one of Title, GivenName, MiddleName, FamilyName, or Suffix attributes is required for object create.",
+            "title": "Suffix",
+            "type": "string"
+          },
+          "Title": {
+            "description": "Title of the person",
+            "title": "Title",
+            "type": "string"
+          },
+          "GivenName": {
+            "description": "Given name or first name of a person.",
+            "title": "Given Name",
+            "type": "string"
+          }
+        },
+        "title": "Customer",
+        "type": "object"
+      },
+      "Customer": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseCustomer"
+          },
+          {
+            "description": "A customer who purchases goods or services from a business.",
+            "properties": {
+              "Id": {
+                "description": "Unique identifier for this customer.",
+                "type": "string",
+                "x-primary-key": true
+              },
+              "SyncToken": {
+                "description": "Version number of the object. It is used to lock an object for use by one app at a time.",
+                "type": "string"
+              }
+            },
+            "title": "Customer",
+            "type": "object"
+          }
+        ],
+        "x-braille-ui": {
+          "templates": {
+            "Option": {
+              "label": "{{DisplayName}}",
+              "sublabel": "{{BillAddr.Line1}}{{#if BillAddr.City}}, {{BillAddr.City}}{{/if}}"
+            }
+          }
+        }
+      },
+      "Vendor": {
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "properties": {
+          "Title": {
+            "description": "The name of the vendor.",
+            "title": "Title",
+            "type": "string"
+          },
+          "Id": {
+            "type": "string",
+            "x-primary-key": true
+          }
+        },
+        "title": "Vendor",
+        "type": "object",
+        "x-braille-ui": {
+          "templates": {
+            "Option": {
+              "label": "{{PrintOnCheckName}}",
+              "sublabel": "{{PrimaryEmailAddr.Address}}"
+            }
+          }
+        }
+      },
+      "Account": {
+        "properties": {
+          "Id": {
+            "description": "Unique identifier for this account.",
+            "title": "Account ID",
+            "type": "string",
+            "x-primary-key": true
+          },
+          "Name": {
+            "description": "User recognizable name for the Account.",
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "title": "Account",
+        "type": "object",
+        "x-braille-ui": {
+          "templates": {
+            "Option": {
+              "label": "{{Name}}",
+              "sublabel": "{{AccountType}}{{#if AccountSubType}} — {{AccountSubType}}{{/if}}"
+            }
+          }
+        }
+      },
+      "BaseLine": {
+        "description": "A line item on a bill.",
+        "properties": {
+          "DetailType": {
+            "enum": ["AccountBasedExpenseLineDetail"],
+            "title": "Detail Type",
+            "type": "string"
+          },
+          "Amount": {
+            "description": "This is the amount of the line item. It should be the amount of the line item excluding any tax. If there is a sub-total or a subtotal column, or exGST or exTax column, this is where you would find this amount. The line item may return a total amount and a tax applicable amount. If there is a tax amount on the line item, then this amount should be the total amount MINUS the tax amount. In short, this amount field is always exclusive of tax.",
+            "title": "Amount (excl. tax)",
+            "type": "number"
+          },
+          "AccountBasedExpenseLineDetail": {
+            "$ref": "#/components/schemas/Line_Detail"
+          },
+          "Description": {
+            "description": "Free form text description of the line item that appears in the printed record.",
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": ["AccountBasedExpenseLineDetail", "Amount", "DetailType"],
+        "title": "Bill Line Item",
+        "type": "object",
+        "x-braille-ui": {
+          "fields": [
+            {
+              "path": "/Amount"
+            },
+            {
+              "path": "/Description"
+            },
+            {
+              "path": "/AccountBasedExpenseLineDetail/AccountRef/value",
+              "label": "Account"
+            },
+            {
+              "path": "/AccountBasedExpenseLineDetail/CustomerRef/value",
+              "label": "Customer"
+            },
+            {
+              "path": "/AccountBasedExpenseLineDetail/TaxCodeRef/value",
+              "label": "Tax Code"
+            }
+          ]
+        }
+      },
+      "UpdateLine": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseLine"
+          },
+          {
+            "description": "A line item on a bill.",
+            "properties": {
+              "Id": {
+                "description": "The Id of the line item.",
+                "type": "string",
+                "x-primary-key": true
+              }
+            },
+            "title": "Bill Line Item",
+            "type": "object"
+          }
+        ]
+      },
+      "BaseBill": {
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "properties": {
+          "DocNumber": {
+            "description": "The document number of the bill (unique identifier)",
+            "maxLength": 21,
+            "title": "Document Number",
+            "type": "string"
+          },
+          "VendorRef": {
+            "$ref": "#/components/schemas/Bill_Vendor"
+          },
+          "TxnDate": {
+            "description": "The date the Transaction occurred.",
+            "format": "date",
+            "title": "Transaction Date",
+            "type": "string",
+            "x-braille-order": 1
+          },
+          "DueDate": {
+            "description": "Date when the payment of the transaction is due.",
+            "format": "date",
+            "title": "Due Date",
+            "type": "string",
+            "x-braille-order": 2
+          },
+          "Line": {
+            "description": "The line items for the bill.",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/BaseLine"
+                }
+              ]
+            },
+            "title": "Lines",
+            "type": "array",
+            "x-braille-order": 3
+          }
+        },
+        "required": ["Line", "VendorRef"],
+        "title": "Bill",
+        "type": "object",
+        "x-braille-ui": {
+          "fields": [
+            {
+              "path": "/DocNumber"
+            },
+            {
+              "path": "/VendorRef/value",
+              "label": "Bill Vendor"
+            },
+            {
+              "path": "/TxnDate"
+            },
+            {
+              "path": "/DueDate"
+            },
+            {
+              "path": "/Line"
+            }
+          ]
+        }
+      },
+      "Bill": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseBill"
+          },
+          {
+            "description": "A request-for-payment from a vendor for goods or services rendered.",
+            "properties": {
+              "Id": {
+                "description": "The Id of the line item.",
+                "type": "string",
+                "x-primary-key": true
+              }
+            },
+            "title": "Bill",
+            "type": "object"
+          }
+        ],
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "title": "Bill",
+        "x-entity": "Bill"
+      },
+      "TaxCode": {
+        "description": "A tax code that can be applied to a transaction.",
+        "properties": {
+          "Id": {
+            "description": "Unique identifier for this tax code.",
+            "title": "Tax Code ID",
+            "type": "string",
+            "x-primary-key": true
+          },
+          "Name": {
+            "description": "User recognizable name for the tax sales code.",
+            "title": "Name",
+            "type": "string"
+          },
+          "Description": {
+            "description": "User recognizable description for the tax sales code.",
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "title": "Tax Code",
+        "type": "object",
+        "x-entity": "TaxCode",
+        "x-braille-ui": {
+          "templates": {
+            "Option": {
+              "label": "{{Name}}",
+              "sublabel": "{{Description}}"
+            }
+          }
+        }
+      },
+      "CreateBill": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseBill"
+          }
+        ],
+        "description": "A request-for-payment from a vendor for goods or services rendered.",
+        "title": "Bill",
+        "x-entity": "Bill"
+      },
+      "UpdateBill": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Bill"
+          },
+          {
+            "properties": {
+              "SyncToken": {
+                "description": "The sync token for the object. Required for updating the object, otherwise ignored.",
+                "type": "string"
+              },
+              "Line": {
+                "items": {
+                  "$ref": "#/components/schemas/UpdateBill_allOf_Line"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          }
+        ],
+        "x-entity": "Bill"
+      },
+      "query_200_response_QueryResponse": {
+        "properties": {
+          "startPosition": {
+            "type": "number"
+          },
+          "maxResults": {
+            "type": "number"
+          },
+          "Account": {
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            },
+            "type": "array"
+          },
+          "Vendor": {
+            "items": {
+              "$ref": "#/components/schemas/Vendor"
+            },
+            "type": "array"
+          },
+          "TaxCode": {
+            "items": {
+              "$ref": "#/components/schemas/TaxCode"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "query_200_response": {
+        "properties": {
+          "QueryResponse": {
+            "$ref": "#/components/schemas/query_200_response_QueryResponse"
+          }
+        },
+        "type": "object"
+      },
+      "Account_1": {
+        "description": "The account associated with the line item.",
+        "properties": {
+          "value": {
+            "description": "The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.",
+            "title": "Account ID",
+            "type": "string",
+            "x-foreign-key": "Account.Id"
+          }
+        },
+        "required": ["value"],
+        "title": "Account",
+        "type": "object"
+      },
+      "Customer_1": {
+        "description": "The customer associated with the line item.",
+        "properties": {
+          "value": {
+            "description": "The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.",
+            "title": "Customer Id",
+            "type": "string",
+            "x-foreign-key": "Customer.Id"
+          }
+        },
+        "required": ["value"],
+        "title": "Customer",
+        "type": "object"
+      },
+      "Tax_Code": {
+        "description": "The tax code associated with the line item.",
+        "properties": {
+          "value": {
+            "description": "The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.",
+            "title": "Tax Code ID",
+            "type": "string",
+            "x-foreign-key": "TaxCode.Id"
+          }
+        },
+        "required": ["value"],
+        "title": "Tax Code",
+        "type": "object"
+      },
+      "Line_Detail": {
+        "description": "The account-based expense details of the line item.",
+        "properties": {
+          "AccountRef": {
+            "$ref": "#/components/schemas/Account_1"
+          },
+          "CustomerRef": {
+            "$ref": "#/components/schemas/Customer_1"
+          },
+          "TaxCodeRef": {
+            "$ref": "#/components/schemas/Tax_Code"
+          }
+        },
+        "required": ["AccountRef", "CustomerRef", "TaxCodeRef"],
+        "title": "Line Detail",
+        "type": "object"
+      },
+      "Bill_Vendor": {
+        "description": "The vendor who sent the invoice / produced the bill.",
+        "properties": {
+          "value": {
+            "description": "The ID for the referenced object as found in the Id field of the object payload.",
+            "title": "Vendor ID",
+            "type": "string",
+            "x-foreign-key": "Vendor.Id"
+          }
+        },
+        "required": ["value"],
+        "title": "Bill Vendor",
+        "type": "object",
+        "x-braille-order": 0
+      },
+      "UpdateBill_allOf_Line": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UpdateLine"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "OpenID": {
+        "openIdConnectUrl": "https://developer.api.intuit.com/.well-known/openid_configuration",
+        "type": "openIdConnect"
+      }
+    }
+  },
+  "x-braille": {
+    "application": {
+      "name": "Quickbooks"
+    },
+    "configuration": {
+      "arguments": {
+        "computed": [
+          {
+            "name": "realmId",
+            "value": "$.id_token_claims.realmid"
+          }
+        ],
+        "static": [
+          {
+            "name": "minorversion",
+            "value": "70"
+          }
+        ]
+      }
+    },
+    "ingestion": {
+      "entities": ["Vendor", "Account", "Customer", "Bill", "TaxCode"],
+      "bootstrap": {
+        "strategy": "paginate",
+        "configuration": {
+          "action": "list",
+          "paginate": "offset",
+          "maxPageSize": 500,
+          "paginationInputs": {
+            "pageSize": "MAXRESULTS",
+            "pageOffset": "STARTPOSITION"
+          }
+        }
+      }
+    },
+    "entities": {
+      "Vendor": {
+        "embeddings": [
+          ".PrintOnCheckName",
+          ".PrimaryEmailAddr.Address",
+          ".BillAddr.Line1 + \" \" + .BillAddr.City"
+        ],
+        "schema": {
+          "$ref": "#/components/schemas/Vendor"
+        },
+        "actions": [
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "operation": "query",
+            "spec": {
+              "$ref": "#"
+            },
+            "inputs": [
+              {
+                "name": "MAXRESULTS",
+                "schema": {
+                  "type": "number",
+                  "default": 100,
+                  "title": "Max Results"
+                }
+              },
+              {
+                "name": "STARTPOSITION",
+                "schema": {
+                  "type": "number",
+                  "default": 0,
+                  "title": "Start Position"
+                }
+              }
+            ],
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Vendor STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Vendor[*]"
+            }
+          }
+        ]
+      },
+      "Account": {
+        "embeddings": [".FullyQualifiedName", ".Description"],
+        "schema": {
+          "$ref": "#/components/schemas/Account"
+        },
+        "actions": [
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "operation": "query",
+            "spec": {
+              "$ref": "#"
+            },
+            "inputs": [
+              {
+                "name": "MAXRESULTS",
+                "schema": {
+                  "type": "number",
+                  "default": 100,
+                  "title": "Max Results"
+                }
+              },
+              {
+                "name": "STARTPOSITION",
+                "schema": {
+                  "type": "number",
+                  "default": 0,
+                  "title": "Start Position"
+                }
+              }
+            ],
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Account STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Account[*]"
+            }
+          }
+        ]
+      },
+      "Customer": {
+        "embeddings": [
+          ".PrintOnCheckName",
+          ".PrimaryEmailAddr.Address",
+          ".WebAddr.URI",
+          ".CompanyName",
+          ".PrimaryPhone.FreeFormNumber",
+          ".Mobile.FreeFormNumber",
+          ".BillAddr"
+        ],
+        "schema": {
+          "$ref": "#/components/schemas/Customer"
+        },
+        "actions": [
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "operation": "query",
+            "spec": {
+              "$ref": "#"
+            },
+            "inputs": [
+              {
+                "name": "MAXRESULTS",
+                "schema": {
+                  "type": "number",
+                  "default": 100,
+                  "title": "Max Results"
+                }
+              },
+              {
+                "name": "STARTPOSITION",
+                "schema": {
+                  "type": "number",
+                  "default": 0,
+                  "title": "Start Position"
+                }
+              }
+            ],
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Customer STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Customer[*]"
+            }
+          }
+        ]
+      },
+      "TaxCode": {
+        "embeddings": [".Name", ".Description"],
+        "schema": {
+          "$ref": "#/components/schemas/TaxCode"
+        },
+        "actions": [
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "operation": "query",
+            "spec": {
+              "$ref": "#"
+            },
+            "inputs": [
+              {
+                "name": "MAXRESULTS",
+                "schema": {
+                  "type": "number",
+                  "default": 100,
+                  "title": "Max Results"
+                }
+              },
+              {
+                "name": "STARTPOSITION",
+                "schema": {
+                  "type": "number",
+                  "default": 0,
+                  "title": "Start Position"
+                }
+              }
+            ],
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM TaxCode STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.TaxCode[*]"
+            }
+          }
+        ]
+      },
+      "Bill": {
+        "embeddings": [
+          ".VendorRef.name",
+          ".Line | map(.AccountBasedExpenseLineDetail.AccountRef.name)",
+          ".Line | map(.Description)"
+        ],
+        "schema": {
+          "$ref": "#/components/schemas/Bill"
+        },
+        "actions": [
+          {
+            "key": "create",
+            "type": "OpenAPI",
+            "spec": {
+              "$ref": "#"
+            },
+            "operation": "createBill",
+            "context": {
+              "entities": {
+                "Vendor": {
+                  "prompt": "Describe possible vendors for this bill. The vendor is typically described in the document header and footer.\n"
+                },
+                "Bill": {
+                  "prompt": "Describe information in this bill that would allow me to identify previous similar bills in the past such as the line items, the billing address, or vendor information.\n"
+                },
+                "Customer": {
+                  "prompt": "Describe all possible information that may hint at the customers the line items are associated with (eg supplies used on a job for a customer).\nThis should not describe the customer who is being billed, but rather the customer who is associated with the line items.\nSometimes the customer can be found around the keywords like delivery address, purchase order, order number or drop off address.\n"
+                },
+                "Account": {
+                  "prompt": "Describe possible Quickbooks accounting accounts from a chart of accounts associated with the line items for this bill.\n"
+                }
+              }
+            },
+            "request": {
+              "path": "/v3/company/{realmId}/bill",
+              "method": "post"
+            },
+            "failure": {
+              "errors": ".Fault.Error | map({ \n  userMessage: (\n    if .code == \"6000\" then .Detail \n    elif .code == \"5030\" then \"Your QuickBooks Online subscription doesn't allow you to create bills. Please upgrade your subscription.\"\n    elif .code == \"2010\" then \"Data required for bill creation is invalid. Please notify the app maintainer.\"\n    else \"Something went wrong\" \n    end\n  ) \n})\n"
+            },
+            "response": {
+              "item": "$.Bill",
+              "outputs": {
+                "$entity": ".Bill",
+                "$link": "\"https://qbo.intuit.com/app/bill?&txnId=\" + .Bill.Id"
+              }
+            }
+          },
+          {
+            "key": "list",
+            "type": "OpenAPI",
+            "operation": "query",
+            "spec": {
+              "$ref": "#"
+            },
+            "inputs": [
+              {
+                "name": "MAXRESULTS",
+                "schema": {
+                  "type": "number",
+                  "default": 100,
+                  "title": "Max Results"
+                }
+              },
+              {
+                "name": "STARTPOSITION",
+                "schema": {
+                  "type": "number",
+                  "default": 0,
+                  "title": "Start Position"
+                }
+              }
+            ],
+            "request": {
+              "path": "/v3/company/{realmId}/query",
+              "method": "get",
+              "arguments": {
+                "static": [
+                  {
+                    "name": "query",
+                    "value": "SELECT * FROM Bill STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+                  }
+                ]
+              }
+            },
+            "response": {
+              "items": "$.QueryResponse.Bill[*]"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

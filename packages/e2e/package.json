@@ -1,0 +1,11 @@
+{
+  "name": "@jptr/braille-e2e",
+  "packageManager": "yarn@4.0.2",
+  "scripts": {
+    "test:ui": "npx playwright test --ui"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@jptr/braille-prisma": "workspace:*"
+  }
+}

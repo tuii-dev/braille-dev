@@ -1,0 +1,710 @@
+#
+# Braille
+#
+
+x-braille:
+  application:
+    name: "Quickbooks"
+
+  configuration:
+    arguments:
+      computed:
+        - name: realmId
+          value: $.id_token_claims.realmid
+
+      static:
+        - name: minorversion
+          value: "70"
+
+  ingestion:
+    entities:
+      - Vendor
+      - Account
+      - Customer
+      - Bill
+      - TaxCode
+
+    bootstrap:
+      strategy: paginate
+      configuration:
+        action: list
+        paginate: offset
+        maxPageSize: 500
+        paginationInputs:
+          pageSize: MAXRESULTS
+          pageOffset: STARTPOSITION
+
+  entities:
+    Vendor:
+      embeddings:
+        - .PrintOnCheckName
+        - .PrimaryEmailAddr.Address
+        - '.BillAddr.Line1 + " " + .BillAddr.City'
+      schema:
+        $ref: "#/components/schemas/Vendor"
+      actions:
+        - key: list
+          type: OpenAPI
+          operation: query
+          spec:
+            $ref: "#"
+
+          inputs:
+            - name: MAXRESULTS
+              schema:
+                type: number
+                default: 100
+                title: Max Results
+
+            - name: STARTPOSITION
+              schema:
+                type: number
+                default: 0
+                title: Start Position
+
+          request:
+            path: /v3/company/{realmId}/query
+            method: get
+            arguments:
+              static:
+                - name: query
+                  value: "SELECT * FROM Vendor STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+
+          response:
+            items: $.QueryResponse.Vendor[*]
+
+    Account:
+      embeddings:
+        - .FullyQualifiedName
+        - .Description
+      schema:
+        $ref: "#/components/schemas/Account"
+      actions:
+        - key: list
+          type: OpenAPI
+          operation: query
+          spec:
+            $ref: "#"
+
+          inputs:
+            - name: MAXRESULTS
+              schema:
+                type: number
+                default: 100
+                title: Max Results
+            - name: STARTPOSITION
+              schema:
+                type: number
+                default: 0
+                title: Start Position
+
+          request:
+            path: /v3/company/{realmId}/query
+            method: get
+            arguments:
+              static:
+                - name: query
+                  value: "SELECT * FROM Account STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+          response:
+            items: $.QueryResponse.Account[*]
+
+    Customer:
+      embeddings:
+        - .PrintOnCheckName
+        - .PrimaryEmailAddr.Address
+        - .WebAddr.URI
+        - .CompanyName
+        - .PrimaryPhone.FreeFormNumber
+        - .Mobile.FreeFormNumber
+        - .BillAddr
+      schema:
+        $ref: "#/components/schemas/Customer"
+      actions:
+        - key: list
+          type: OpenAPI
+          operation: query
+          spec:
+            $ref: "#"
+
+          inputs:
+            - name: MAXRESULTS
+              schema:
+                type: number
+                default: 100
+                title: Max Results
+            - name: STARTPOSITION
+              schema:
+                type: number
+                default: 0
+                title: Start Position
+
+          request:
+            path: /v3/company/{realmId}/query
+            method: get
+            arguments:
+              static:
+                - name: query
+                  value: "SELECT * FROM Customer STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+          response:
+            items: $.QueryResponse.Customer[*]
+
+    TaxCode:
+      embeddings:
+        - .Name
+        - .Description
+      schema:
+        $ref: "#/components/schemas/TaxCode"
+      actions:
+        - key: list
+          type: OpenAPI
+          operation: query
+          spec:
+            $ref: "#"
+          inputs:
+            - name: MAXRESULTS
+              schema:
+                type: number
+                default: 100
+                title: Max Results
+            - name: STARTPOSITION
+              schema:
+                type: number
+                default: 0
+                title: Start Position
+          request:
+            path: /v3/company/{realmId}/query
+            method: get
+            arguments:
+              static:
+                - name: query
+                  value: "SELECT * FROM TaxCode STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+
+          response:
+            items: $.QueryResponse.TaxCode[*]
+
+    Bill:
+      embeddings:
+        - .VendorRef.name
+        - .Line | map(.AccountBasedExpenseLineDetail.AccountRef.name)
+        - .Line | map(.Description)
+      schema:
+        $ref: "#/components/schemas/Bill"
+      actions:
+        - key: create
+          type: OpenAPI
+          spec:
+            $ref: "#"
+          operation: createBill
+
+          context:
+            entities:
+              Vendor:
+                prompt: |
+                  Describe possible vendors for this bill. The vendor is typically described in the document header and footer.
+
+              Bill:
+                prompt: |
+                  Describe information in this bill that would allow me to identify previous similar bills in the past such as the line items, the billing address, or vendor information.
+
+              Customer:
+                prompt: |
+                  Describe all possible information that may hint at the customers the line items are associated with (eg supplies used on a job for a customer).
+                  This should not describe the customer who is being billed, but rather the customer who is associated with the line items.
+                  Sometimes the customer can be found around the keywords like delivery address, purchase order, order number or drop off address.
+
+              Account:
+                prompt: |
+                  Describe possible Quickbooks accounting accounts from a chart of accounts associated with the line items for this bill.
+
+          request:
+            path: /v3/company/{realmId}/bill
+            method: post
+
+          failure:
+            errors: >
+              .Fault.Error | map({ 
+                userMessage: (
+                  if .code == "6000" then .Detail 
+                  elif .code == "5030" then "Your QuickBooks Online subscription doesn't allow you to create bills. Please upgrade your subscription."
+                  elif .code == "2010" then "Data required for bill creation is invalid. Please notify the app maintainer."
+                  else "Something went wrong" 
+                  end
+                ) 
+              })
+
+          response:
+            item: $.Bill
+            outputs:
+              $entity: .Bill
+              $link: '"https://qbo.intuit.com/app/bill?&txnId=" + .Bill.Id'
+
+        - key: list
+          type: OpenAPI
+          operation: query
+          spec:
+            $ref: "#"
+
+          inputs:
+            - name: MAXRESULTS
+              schema:
+                type: number
+                default: 100
+                title: Max Results
+            - name: STARTPOSITION
+              schema:
+                type: number
+                default: 0
+                title: Start Position
+
+          request:
+            path: /v3/company/{realmId}/query
+            method: get
+            arguments:
+              static:
+                - name: query
+                  value: "SELECT * FROM Bill STARTPOSITION {{ STARTPOSITION }} MAXRESULTS {{ MAXRESULTS }}"
+
+          response:
+            items: $.QueryResponse.Bill[*]
+
+# OpenAPI
+#
+
+openapi: 3.0.0
+info:
+  title: Quickbooks API
+  version: 0.0.0
+
+components:
+  schemas:
+    # Entities
+    BaseVendor:
+      type: object
+      properties:
+        Title:
+          type: string
+
+    BaseCustomer:
+      type: object
+      title: Customer
+      description: A customer who purchases goods or services from a business.
+
+      properties:
+        DisplayName:
+          type: string
+          title: Display Name
+          description: The name of the person or organization as displayed.
+        CompanyName:
+          type: string
+          title: Company Name
+          description: The name of the company.
+        Suffix:
+          type: string
+          title: Suffix
+          description: Suffix of the name. For example, Jr. The DisplayName attribute or at least one of Title, GivenName, MiddleName, FamilyName, or Suffix attributes is required for object create.
+        Title:
+          type: string
+          title: Title
+          description: Title of the person
+        GivenName:
+          type: string
+          title: Given Name
+          description: Given name or first name of a person.
+
+    Customer:
+      x-braille-ui:
+        templates:
+          Option:
+            label: "{{DisplayName}}"
+            sublabel: "{{BillAddr.Line1}}{{#if BillAddr.City}}, {{BillAddr.City}}{{/if}}"
+
+      allOf:
+        - $ref: "#/components/schemas/BaseCustomer"
+        - type: object
+          title: Customer
+          description: A customer who purchases goods or services from a business.
+          properties:
+            Id:
+              type: string
+              description: Unique identifier for this customer.
+              x-primary-key: true
+            SyncToken:
+              type: string
+              description: Version number of the object. It is used to lock an object for use by one app at a time.
+
+    Vendor:
+      type: object
+      title: Vendor
+      description: A request-for-payment from a vendor for goods or services rendered.
+
+      x-braille-ui:
+        templates:
+          Option:
+            label: "{{PrintOnCheckName}}"
+            sublabel: "{{PrimaryEmailAddr.Address}}"
+
+      properties:
+        Title:
+          title: Title
+          description: The name of the vendor.
+          type: string
+        Id:
+          type: string
+          x-primary-key: true
+
+    Account:
+      type: object
+      title: Account
+
+      x-braille-ui:
+        templates:
+          Option:
+            label: "{{Name}}"
+            sublabel: "{{AccountType}}{{#if AccountSubType}} — {{AccountSubType}}{{/if}}"
+
+      properties:
+        Id:
+          type: string
+          title: Account ID
+          description: Unique identifier for this account.
+          x-primary-key: true
+        Name:
+          type: string
+          title: Name
+          description: User recognizable name for the Account.
+
+    BaseLine:
+      type: object
+      title: Bill Line Item
+      description: A line item on a bill.
+      required:
+        - DetailType
+        - Amount
+        - AccountBasedExpenseLineDetail
+
+      x-braille-ui:
+        fields:
+          - path: /Amount
+          - path: /Description
+          - path: /AccountBasedExpenseLineDetail/AccountRef/value
+            label: Account
+          - path: /AccountBasedExpenseLineDetail/CustomerRef/value
+            label: Customer
+          # - path: /AccountBasedExpenseLineDetail/TaxAmount
+          # - path: /AccountBasedExpenseLineDetail/TaxInclusiveAmt
+          - path: /AccountBasedExpenseLineDetail/TaxCodeRef/value
+            label: Tax Code
+
+      properties:
+        DetailType:
+          type: string
+          title: Detail Type
+          enum:
+            - AccountBasedExpenseLineDetail
+
+        Amount:
+          type: number
+          title: Amount (excl. tax)
+          description: This is the amount of the line item. It should be the amount of the line item excluding any tax. If there is a sub-total or a subtotal column, or exGST or exTax column, this is where you would find this amount. The line item may return a total amount and a tax applicable amount. If there is a tax amount on the line item, then this amount should be the total amount MINUS the tax amount. In short, this amount field is always exclusive of tax.
+
+        AccountBasedExpenseLineDetail:
+          type: object
+          title: Line Detail
+          description: The account-based expense details of the line item.
+          required:
+            - AccountRef
+            - CustomerRef
+            # - TaxAmount
+            # - TaxInclusiveAmt
+            - TaxCodeRef
+          properties:
+            AccountRef:
+              type: object
+              title: Account
+              description: The account associated with the line item.
+              required:
+                - value
+              properties:
+                value:
+                  type: string
+                  title: Account ID
+                  description: The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.
+                  x-foreign-key: Account.Id
+            CustomerRef:
+              type: object
+              title: Customer
+              description: The customer associated with the line item.
+              required:
+                - value
+              properties:
+                value:
+                  type: string
+                  title: Customer Id
+                  description: The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.
+                  x-foreign-key: Customer.Id
+            # TaxAmount:
+            #   type: number
+            #   title: Tax Amount
+            #   description: Sales tax paid as part of the expense.
+            # TaxInclusiveAmt:
+            #   type: number
+            #   title: Total Amount (inclusive of tax)
+            #   description: The total amount of the line item including tax.
+            TaxCodeRef:
+              type: object
+              title: Tax Code
+              description: The tax code associated with the line item.
+              required:
+                - value
+              properties:
+                value:
+                  type: string
+                  title: Tax Code ID
+                  description: The ID for the referenced object as found in the Id field of the object payload. The context is set by the type of reference and is specific to the QuickBooks company file.
+                  x-foreign-key: TaxCode.Id
+
+        Description:
+          type: string
+          title: Description
+          description: Free form text description of the line item that appears in the printed record.
+
+    UpdateLine:
+      allOf:
+        - $ref: "#/components/schemas/BaseLine"
+        - type: object
+          title: Bill Line Item
+          description: A line item on a bill.
+          properties:
+            Id:
+              type: string
+              description: The Id of the line item.
+              x-primary-key: true
+
+    BaseBill:
+      type: object
+      title: Bill
+      description: A request-for-payment from a vendor for goods or services rendered.
+      required:
+        - VendorRef
+        - Line
+      x-braille-ui:
+        fields:
+          - path: /DocNumber
+          - path: /VendorRef/value
+            label: Bill Vendor
+          - path: /TxnDate
+          - path: /DueDate
+          - path: /Line
+
+      properties:
+        DocNumber:
+          type: string
+          title: Document Number
+          description: The document number of the bill (unique identifier)
+          maxLength: 21
+        VendorRef:
+          type: object
+          title: "Bill Vendor"
+          description: The vendor who sent the invoice / produced the bill.
+          x-braille-order: 0
+          required:
+            - value
+          properties:
+            value:
+              type: string
+              title: "Vendor ID"
+              description: The ID for the referenced object as found in the Id field of the object payload.
+              x-foreign-key: Vendor.Id
+        TxnDate:
+          type: string
+          title: Transaction Date
+          x-braille-order: 1
+          description: The date the Transaction occurred.
+          format: "date"
+        DueDate:
+          type: string
+          title: Due Date
+          x-braille-order: 2
+          description: Date when the payment of the transaction is due.
+          format: "date"
+        Line:
+          type: array
+          title: Lines
+          x-braille-order: 3
+          description: The line items for the bill.
+          items:
+            allOf:
+              - $ref: "#/components/schemas/BaseLine"
+        # GlobalTaxCalculation:
+        #   type: string
+        #   enum: ["TaxInclusive"]
+        #   title: Tax Calculation
+        #   description: The UI preference for how the tax is displayed in the Quickbooks application. This has no bearing on how the line items should be defined and is a UI preference only.
+
+    Bill:
+      x-entity: Bill
+      title: Bill
+      description: A request-for-payment from a vendor for goods or services rendered.
+      allOf:
+        - $ref: "#/components/schemas/BaseBill"
+        - type: object
+          title: Bill
+          description: A request-for-payment from a vendor for goods or services rendered.
+          properties:
+            Id:
+              type: string
+              description: The Id of the line item.
+              x-primary-key: true
+
+    TaxCode:
+      type: object
+      x-entity: TaxCode
+      x-braille-ui:
+        templates:
+          Option:
+            label: "{{Name}}"
+            sublabel: "{{Description}}"
+      title: Tax Code
+      description: A tax code that can be applied to a transaction.
+      properties:
+        Id:
+          type: string
+          title: Tax Code ID
+          description: Unique identifier for this tax code.
+          x-primary-key: true
+        Name:
+          type: string
+          title: Name
+          description: User recognizable name for the tax sales code.
+        Description:
+          type: string
+          title: Description
+          description: User recognizable description for the tax sales code.
+
+    CreateBill:
+      title: Bill
+      description: A request-for-payment from a vendor for goods or services rendered.
+      x-entity: Bill
+      allOf:
+        - $ref: "#/components/schemas/BaseBill"
+
+    UpdateBill:
+      x-entity: Bill
+      allOf:
+        - $ref: "#/components/schemas/Bill"
+        - type: object
+          properties:
+            SyncToken:
+              type: string
+              description: The sync token for the object. Required for updating the object, otherwise ignored.
+            Line:
+              type: array
+              items:
+                allOf:
+                  - $ref: "#/components/schemas/UpdateLine"
+
+  securitySchemes:
+    OpenID:
+      type: openIdConnect
+      openIdConnectUrl: https://developer.api.intuit.com/.well-known/openid_configuration
+
+security:
+  - OpenID:
+      - "com.intuit.quickbooks.accounting"
+      - "openid"
+      - "profile"
+      - "email"
+      - "address"
+
+paths:
+  /v3/company/{realmId}/bill:
+    post:
+      operationId: createBill
+      summary: Create a bill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBill"
+      parameters:
+        - in: path
+          name: realmId
+          required: true
+          schema:
+            type: string
+          description: The company ID
+        - in: query
+          name: minorversion
+          required: true
+          schema:
+            type: string
+          description: The minor version
+      responses:
+        "200":
+          description: "OK"
+        "201":
+          description: "Created"
+
+  /v3/company/{realmId}/query:
+    summary: Query for any and all entities
+    get:
+      operationId: query
+      responses:
+        "200":
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  QueryResponse:
+                    type: object
+                    properties:
+                      startPosition:
+                        type: number
+                      maxResults:
+                        type: number
+                      Account:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Account"
+                      Vendor:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Vendor"
+                      TaxCode:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TaxCode"
+
+      description: Query for entities
+      parameters:
+        - in: path
+          name: realmId
+          required: true
+          schema:
+            type: string
+          description: The company ID
+
+        - in: query
+          name: minorversion
+          required: true
+          schema:
+            type: string
+          description: The minor version
+
+        - in: query
+          name: query
+          schema:
+            type: string
+          description: Search term
+
+servers:
+  - url: "https://quickbooks.api.intuit.com"
+    description: Quickbooks Production API
+    x-environment: prod
+
+  - url: "https://sandbox-quickbooks.api.intuit.com"
+    description: Quickbooks Sandbox API
+    x-environment: dev

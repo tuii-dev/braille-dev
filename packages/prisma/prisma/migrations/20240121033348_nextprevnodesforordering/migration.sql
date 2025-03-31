@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "Node" ADD COLUMN     "nextId" TEXT,
+ADD COLUMN     "prevId" TEXT;
+
+-- AddForeignKey
+ALTER TABLE "Node" ADD CONSTRAINT "Node_nextId_fkey" FOREIGN KEY ("nextId") REFERENCES "Node"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Node" ADD CONSTRAINT "Node_prevId_fkey" FOREIGN KEY ("prevId") REFERENCES "Node"("id") ON DELETE SET NULL ON UPDATE CASCADE;

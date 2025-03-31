@@ -1,0 +1,26 @@
+{
+  "id": "06c0f299-3e8c-42d0-bcdc-23967831b97f",
+  "publisher": {
+    "id": "863ee4f7-84c6-4cf8-bc24-3bd5c24dc670",
+    "name": "Braille"
+  },
+  "actions": [
+    {
+      "id": "1b80d81c-fb1c-4907-9423-9314f575f758",
+      "name": "HTTP Request",
+      "description": "Make a request to an external API",
+      "parameters": {
+        "url": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST"]
+        },
+        "body": {
+          "type": "object"
+        }
+      }
+    }
+  ]
+}

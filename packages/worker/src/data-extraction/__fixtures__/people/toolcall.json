@@ -1,0 +1,97 @@
+{
+  "role": "assistant",
+  "content": null,
+  "tool_calls": [
+    {
+      "id": "call_Vi19FEOfhqMw7YhAQqxXy1pc",
+      "type": "function",
+      "function": {
+        "name": "get_information",
+        "arguments": {
+          "4YvWp_VE82svXcCzczYF-": [
+            {
+              "9RibMWoPw_6ZOLmXBPwxO": [
+                {
+                  "48xcbxvIDmqirBM6CLzCI": [
+                    {
+                      "WTXKBgBQ0LkZWQv8L563E": [
+                        {
+                          "1_5PgtUfzQTydF0lMoN1k": "Craig Schmidt",
+                          "5Xd2soIlEz-CvFRK3BiyG": "null"
+                        }
+                      ]
+                    }
+                  ],
+                  "_M9Ux97qnk2HD-dmDiW70": "Michael Schmidt"
+                },
+                {
+                  "48xcbxvIDmqirBM6CLzCI": [
+                    {
+                      "WTXKBgBQ0LkZWQv8L563E": [
+                        {
+                          "1_5PgtUfzQTydF0lMoN1k": "Craig Schmidt",
+                          "5Xd2soIlEz-CvFRK3BiyG": "null"
+                        }
+                      ]
+                    }
+                  ],
+                  "_M9Ux97qnk2HD-dmDiW70": "Matthew Schmidt",
+                  "9oavw8F9MfZoGVFhuRFy4": "brown"
+                },
+                {
+                  "48xcbxvIDmqirBM6CLzCI": [
+                    {
+                      "WTXKBgBQ0LkZWQv8L563E": [
+                        {
+                          "1_5PgtUfzQTydF0lMoN1k": "Craig Schmidt",
+                          "5Xd2soIlEz-CvFRK3BiyG": "null"
+                        }
+                      ]
+                    }
+                  ],
+                  "_M9Ux97qnk2HD-dmDiW70": "Benjamin Schmidt",
+                  "9oavw8F9MfZoGVFhuRFy4": "brown"
+                }
+              ],
+              "_Ro97IXdznc_eVlq2wrq1": "null"
+            },
+            {
+              "9RibMWoPw_6ZOLmXBPwxO": [
+                {
+                  "48xcbxvIDmqirBM6CLzCI": [
+                    {
+                      "WTXKBgBQ0LkZWQv8L563E": [
+                        {
+                          "1_5PgtUfzQTydF0lMoN1k": "Sean Wilson",
+                          "5Xd2soIlEz-CvFRK3BiyG": "null"
+                        }
+                      ]
+                    }
+                  ],
+                  "_M9Ux97qnk2HD-dmDiW70": "Louie Wilson",
+                  "9oavw8F9MfZoGVFhuRFy4": "blonde"
+                },
+                {
+                  "48xcbxvIDmqirBM6CLzCI": [
+                    {
+                      "WTXKBgBQ0LkZWQv8L563E": [
+                        {
+                          "1_5PgtUfzQTydF0lMoN1k": "Sean Wilson",
+                          "5Xd2soIlEz-CvFRK3BiyG": "null"
+                        }
+                      ]
+                    }
+                  ],
+                  "_M9Ux97qnk2HD-dmDiW70": "Judah Wilson",
+                  "9oavw8F9MfZoGVFhuRFy4": "brown"
+                }
+              ],
+              "_Ro97IXdznc_eVlq2wrq1": "null"
+            }
+          ],
+          "gGhFWdTYC8-KvYWHGf6vo": "null"
+        }
+      }
+    }
+  ]
+}

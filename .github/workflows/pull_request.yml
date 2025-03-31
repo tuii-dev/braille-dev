@@ -1,0 +1,113 @@
+name: Braille - Pull Request
+on:
+  pull_request:
+    branches:
+      - "*"
+jobs:
+  shared:
+    name: Shared Infrastructure
+    runs-on: ubuntu-24.04
+    outputs:
+      ecr_url: ${{ steps.apply.outputs.ecr_url }}
+      ci_user_access_key_id: ${{ steps.apply.outputs.ci_user_access_key_id }}
+      ci_user_access_secret_key: ${{ steps.apply.outputs.ci_user_access_secret_key }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+        working-directory: infrastructure/shared
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: infrastructure/shared
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: infrastructure/shared
+
+      - name: Terraform Load
+        id: apply
+        working-directory: infrastructure/shared
+        run: |
+          echo "ecr_url=$(terraform output -raw ECR_REPOSITORY_URL)" >> $GITHUB_OUTPUT
+          echo "ci_user_access_key_id=$(terraform output -raw CI_USER_ACCESS_KEY_ID)" >> $GITHUB_OUTPUT
+          echo "ci_user_access_secret_key=$(terraform output -raw CI_USER_ACCESS_KEY_SECRET)" >> $GITHUB_OUTPUT
+
+  buildapp:
+    name: Build Application
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+    steps:
+      - uses: actions/checkout@v4
+      - id: buildapp
+        uses: ./.github/actions/buildapp
+        with:
+          IMAGE_TAG: ${{ needs.shared.outputs.ecr_url }}:application_${{ github.sha }}
+          AWS_ACCESS_KEY_ID: ${{ needs.shared.outputs.ci_user_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ needs.shared.outputs.ci_user_access_secret_key }}
+
+  worker:
+    name: Build Worker Container
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ needs.shared.outputs.ci_user_access_key_id }}
+          aws-secret-access-key: ${{ needs.shared.outputs.ci_user_access_secret_key }}
+          aws-region: ap-southeast-2
+
+      - name: Login to Amazon ECR
+        id: ecr_auth
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: "true"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64
+          context: .
+          file: ./packages/worker/Dockerfile
+          push: true
+          tags: |
+            ${{ needs.shared.outputs.ecr_url }}:worker_${{ github.sha }}
+
+  integration:
+    name: Playwright Integration Tests
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+      - buildapp
+      - worker
+
+    steps:
+      - uses: actions/checkout@v3
+      - id: integration
+        uses: ./.github/actions/integration
+        with:
+          AWS_ACCESS_KEY_ID: ${{ needs.shared.outputs.ci_user_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ needs.shared.outputs.ci_user_access_secret_key }}
+          APP_IMAGE_TAG: ${{ needs.shared.outputs.ecr_url }}:application_${{ github.sha }}
+          WORKER_IMAGE_TAG: ${{ needs.shared.outputs.ecr_url }}:worker_${{ github.sha }}

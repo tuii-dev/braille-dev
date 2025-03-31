@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Braille Application Schema",
+  "description": "Defines the schema for the Braille Application",
+  "type": "object",
+  "properties": {
+    "application": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The name of the application"
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "title": "configuration",
+      "description": "Defines the required configuration for the application",
+      "properties": {
+        "arguments": {
+          "type": "object"
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "The name of the entity"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "enum": ["list", "create"],
+                  "title": "Action Type",
+                  "description": "The type of entity action to perform"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["request"]
+                },
+                "specification": {
+                  "type": "string",
+                  "enum": ["OpenAPI"]
+                },
+                "definition": {},
+                "arguments": {
+                  "type": "object",
+                  "title": "Arguments",
+                  "description": "The arguments required for the action"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

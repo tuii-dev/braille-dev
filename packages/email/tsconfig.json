@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {    
+    "composite": true,
+    "target": "ES5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "rootDir": "./",
+    "outDir": "dist"
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.json"],
+  "exclude": ["node_modules", "dist"]
+}

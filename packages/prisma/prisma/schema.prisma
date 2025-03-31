@@ -1,0 +1,567 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions", "relationJoins"]
+  binaryTargets   = ["native", "linux-musl", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  extensions = [pgvector(map: "vector")]
+}
+
+enum MimeType {
+  PNG
+  PDF
+  JPEG
+}
+
+model User {
+  id                String              @id @default(nanoid())
+  email             String              @unique
+  name              String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  avatar            String?
+  tenants           Tenant[]
+  documents         Document[]
+  userTenantRoles   UserTenantRole[]
+  userSystemRoles   UserSystemRole[]
+  workspaceDocument WorkspaceDocument[]
+  actionExecution   ActionExecution[]
+  appOAuthTokenSet  AppOAuthTokenSet[]
+  preferences       UserPreferences?
+}
+
+// A FILE THAT IS UPLOADED TO THE SYSTEM THAT REPRESENTS PART OR ALL OF A DOCUMENT
+
+model File {
+  id                   String                @id @default(nanoid())
+  key                  String                @unique
+  type                 MimeType
+  document             Document?             @relation(fields: [documentId], references: [id])
+  documentId           String?
+  detailedDescriptions DetailedDescription[]
+  idx                  Int?
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+}
+
+// TENANT WHICH ENTITIES ARE ISOLATED TO
+
+model Tenant {
+  id                            String                          @id @default(nanoid())
+  name                          String
+  createdAt                     DateTime                        @default(now())
+  documents                     Document[]
+  files                         File[]
+  models                        Model[]
+  data                          Data[]
+  detailedDescriptions          DetailedDescription[]
+  users                         User[]
+  dataExtractionJobs            DataExtractionJob[]
+  userTenantRoles               UserTenantRole[]
+  workspaces                    Workspace[]
+  workspaceModels               WorkspaceModel[]
+  workspaceDocuments            WorkspaceDocument[]
+  actionExecutions              ActionExecution[]
+  actionExecutionOutputs        ActionOuputs[]
+  actionExecutionErrors         ActionExecutionError[]
+  entities                      Entity[]
+  appConnections                AppConnection[]
+  appConnectionSettings         AppConnectionSetting[]
+  appOAuthTokenSets             AppOAuthTokenSet[]
+  modelVersions                 ModelVersion[]
+  schemas                       Schema[]
+  dataExtractionJobCustomPrompt DataExtractionJobCustomPrompt[]
+  entityEmbeddings              EntityEmbedding[]
+  embeddings                    Embedding[]
+}
+
+enum SystemRole {
+  ADMIN
+}
+
+enum TenantRole {
+  ADMIN
+}
+
+model UserSystemRole {
+  role   SystemRole
+  user   User       @relation(fields: [userId], references: [id])
+  userId String
+
+  @@unique([role, userId])
+}
+
+model UserTenantRole {
+  role   TenantRole
+  user   User       @relation(fields: [userId], references: [id])
+  userId String
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  @@unique([role, userId, tenantId])
+}
+
+model Document {
+  id      String  @id @default(nanoid())
+  name    String?
+  files   File[]
+  deleted Boolean @default(false)
+
+  // Relations
+  dataExtractionJobs DataExtractionJob[]
+  workspaceDocument  WorkspaceDocument[]
+
+  // Meta
+  createdAt   DateTime @default(now())
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId    String
+}
+
+model Workspace {
+  id          String   @id @default(nanoid())
+  name        String
+  slug        String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId    String
+  color       String?
+  description String?
+  archived    Boolean? @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // RELATIONS
+  models    WorkspaceModel[]
+  documents WorkspaceDocument[]
+}
+
+model DetailedDescription {
+  id          String  @id @default(nanoid())
+  file        File?   @relation(fields: [fileId], references: [id])
+  fileId      String?
+  description String
+  tenant      Tenant  @relation(fields: [tenantId], references: [id])
+  tenantId    String
+}
+
+enum FieldDataTypeEnum {
+  STRING
+  NUMBER
+  ENUM
+  DATE
+  ARRAY
+  BOOLEAN
+  CURRENCY
+  OBJECT
+  ENTITY
+}
+
+enum CurrencyEnum {
+  AUD
+  USD
+  CAD
+  EUR
+  GBP
+}
+
+model WorkspaceModel {
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+
+  model   Model  @relation(fields: [modelId], references: [id])
+  modelId String
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  @@id([workspaceId, modelId])
+}
+
+model Model {
+  id       String  @id @default(nanoid())
+  name     String
+  archived Boolean @default(false)
+
+  // RELATIONS
+  versions       ModelVersion[]
+  workspaces     WorkspaceModel[]
+  appEntityModel AppEntityModel?
+  entities       Entity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId  String?
+}
+
+model ModelVersion {
+  id       String @id @default(nanoid())
+  schema   Schema @relation(fields: [schemaId], references: [id])
+  schemaId String
+  model    Model  @relation(fields: [modelId], references: [id])
+  modelId  String
+
+  // RELATIONS
+  data                   Data[]
+  dataExtractionJob      DataExtractionJob[]
+  appVersionModelVersion AppVersionModelVersion?
+
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  entity    Entity[]
+}
+
+model Data {
+  id                String             @id @default(nanoid())
+  json              Json
+  modelVersion      ModelVersion       @relation(fields: [modelVersionId], references: [id])
+  modelVersionId    String
+  dataExtractionJob DataExtractionJob?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+}
+
+enum JobType {
+  USER
+  SYSTEM
+}
+
+model WorkspaceDocument {
+  id                 String              @id @default(nanoid())
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id])
+  workspaceId        String
+  document           Document            @relation(fields: [documentId], references: [id])
+  documentId         String
+  dataExtractionJobs DataExtractionJob[]
+
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId    String
+}
+
+model DataExtractionJob {
+  id     String                  @id @default(nanoid())
+  status DataExtractionJobStatus @default(PENDING)
+  data   Data?                   @relation(fields: [dataId], references: [id])
+  dataId String?                 @unique
+
+  customPrompts       DataExtractionJobCustomPrompt[]
+  // DOCUMENT
+  document            Document                        @relation(fields: [documentId], references: [id])
+  documentId          String
+  // WORKSPACE DOCUMENT
+  workspaceDocument   WorkspaceDocument?              @relation(fields: [workspaceDocumentId], references: [id])
+  workspaceDocumentId String?
+  // MODEL
+  modelVersion        ModelVersion                    @relation(fields: [modelVersionId], references: [id])
+  modelVersionId      String
+  // ACTION EXECUTION
+  actionExecutions    ActionExecution[]
+
+  openAiUsage OpenAiUsage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+}
+
+model DataExtractionJobCustomPrompt {
+  id String @id @default(nanoid())
+
+  dataExtractionJob   DataExtractionJob @relation(fields: [dataExtractionJobId], references: [id])
+  dataExtractionJobId String
+
+  prompt String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+}
+
+enum DataExtractionJobStatus {
+  PENDING
+  RUNNING
+  FINISHED
+  FAILED
+}
+
+model OpenAiUsage {
+  id                      String             @id @unique
+  object                  String
+  model                   String
+  created                 Int
+  usage_prompt_tokens     Int
+  usage_completion_tokens Int
+  system_fingerprint      String?
+  dataExtractionJob       DataExtractionJob? @relation(fields: [dataExtractionJobId], references: [id])
+  dataExtractionJobId     String?
+}
+
+model AppPublisher {
+  id   String @id @default(nanoid())
+  name String
+  apps App[]
+
+  // METADATA
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model App {
+  id                   String                @id @default(nanoid())
+  name                 String?
+  appPublisher         AppPublisher          @relation(fields: [appPublisherId], references: [id])
+  appPublisherId       String
+  appOAuthClientSecret AppOAuthClientSecret?
+
+  // RELATIONS
+  entityModels AppEntityModel[]
+  connections  AppConnection[]
+  versions     AppVersion[]
+
+  // METADATA
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  entity    Entity[]
+}
+
+model AppEntityModel {
+  app     App    @relation(fields: [appId], references: [id])
+  appId   String
+  model   Model  @relation(fields: [modelId], references: [id])
+  modelId String @unique
+
+  @@id([appId, modelId])
+}
+
+model AppVersion {
+  id     String @id @default(nanoid())
+  app    App    @relation(fields: [appId], references: [id])
+  appId  String
+  schema Json
+
+  // RELATIONS
+  modelVersions AppVersionModelVersion[]
+
+  // METADATA
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppVersionModelVersion {
+  appVersion     AppVersion   @relation(fields: [appVersionId], references: [id])
+  appVersionId   String
+  modelVersion   ModelVersion @relation(fields: [modelVersionId], references: [id])
+  modelVersionId String       @unique
+
+  @@id([appVersionId, modelVersionId])
+}
+
+model AppConnection {
+  id              String                 @id @default(nanoid())
+  app             App                    @relation(fields: [appId], references: [id])
+  appId           String
+  settings        AppConnectionSetting[]
+  oauthTokenset   AppOAuthTokenSet?      @relation(fields: [oauthTokensetId], references: [id])
+  oauthTokensetId String?
+
+  // METADATA
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+}
+
+enum AppConnectionSettingType {
+  SETTING
+  COMPUTED
+}
+
+model AppConnectionSetting {
+  id           String                    @id @default(nanoid())
+  type         AppConnectionSettingType? @default(SETTING)
+  key          String
+  value        String
+  connection   AppConnection             @relation(fields: [connectionId], onDelete: Cascade, references: [id])
+  connectionId String
+
+  // METADATA
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+}
+
+model AppOAuthTokenSet {
+  id           String  @id @default(nanoid())
+  accessToken  String
+  refreshToken String
+  expiresAt    Int
+  scope        String?
+
+  // RELATIONS
+  connections AppConnection[]
+
+  // METADATA
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId    String
+}
+
+model AppOAuthClientSecret {
+  id           String @id @default(nanoid())
+  app          App    @relation(fields: [appId], references: [id])
+  appId        String @unique
+  clientId     String
+  clientSecret String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Schema {
+  id     String @id @default(nanoid())
+  schema Json
+
+  // RELATIONS
+  modelVersion ModelVersion[]
+
+  // METADATA
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId  String?
+}
+
+model Entity {
+  id               String                       @id
+  data             Json
+  embedding        Unsupported("vector(1536)")?
+  entityEmbeddings EntityEmbedding[]
+
+  app   App    @relation(fields: [appId], references: [id])
+  appId String
+
+  model   Model  @relation(fields: [modelId], references: [id])
+  modelId String
+
+  modelVersion   ModelVersion @relation(fields: [modelVersionId], references: [id])
+  modelVersionId String
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EntityEmbedding {
+  entity   Entity @relation(fields: [entityId], onDelete: Cascade, references: [id])
+  entityId String
+
+  embedding   Embedding @relation(fields: [embeddingId], onDelete: Cascade, references: [id])
+  embeddingId String
+
+  tenant    Tenant   @relation(fields: [tenantId], onDelete: Cascade, references: [id])
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([entityId, embeddingId])
+}
+
+model Embedding {
+  id               String                       @id @default(nanoid())
+  embedding        Unsupported("vector(1536)")?
+  entityEmbeddings EntityEmbedding[]
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum ActionType {
+  LIST
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
+model ActionExecution {
+  id                  String                 @id @default(nanoid())
+  type                ActionType
+  status              TaskStatus
+  dataExtractJob      DataExtractionJob      @relation(fields: [dataExtractionJobId], references: [id])
+  dataExtractionJobId String
+  outputs             ActionOuputs[]
+  errors              ActionExecutionError[]
+
+  executedBy   User     @relation(fields: [executedById], references: [id])
+  executedById String
+  executedAt   DateTime @default(now())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+}
+
+model ActionOuputs {
+  name              String
+  data              Json
+  actionExecution   ActionExecution @relation(fields: [actionExecutionId], references: [id])
+  actionExecutionId String
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  @@unique([name, actionExecutionId])
+}
+
+model ActionExecutionError {
+  id          String  @id @default(nanoid())
+  userMessage String
+  log         String?
+
+  actionExecution   ActionExecution @relation(fields: [actionExecutionId], references: [id])
+  actionExecutionId String
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+}
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  FINISHED
+  FAILED
+}
+
+model UserPreferences {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id])
+  lastModifiedAt      DateTime @default(now())
+  pinnedWorkspaces    String[] @default([])
+  lastUsedWorkspaceId String?
+
+  @@index([lastUsedWorkspaceId])
+}

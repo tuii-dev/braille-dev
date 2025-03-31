@@ -1,0 +1,39 @@
+{
+  "name": "@jptr/braille",
+  "version": "0.0.0",
+  "repository": "git@github.com:jptrsoftware/braille.git",
+  "author": "Michael Schmidt <me@michaelschmidt.com.au>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "db:reset": "yarn workspace @jptr/braille-prisma db:reset && yarn workspace @jptr/braille-prisma db:generate",
+    "tflocal:init": "tflocal -chdir=infrastructure/services init",
+    "tflocal:apply": "tflocal -chdir=infrastructure/services apply -var \"AWS_ACCESS_KEY_ID=test\" -var \"AWS_SECRET_ACCESS_KEY=test\" -var \"LOCALSTACK=true\" -var \"APP_DOMAIN=braille-dev.jptr.software\"",
+    "tflocal:env": "tflocal -chdir=infrastructure/services output -json > .env.local",
+    "tflocal:destroy": "tflocal -chdir=infrastructure/services destroy -var \"AWS_ACCESS_KEY_ID=test\" -var \"AWS_SECRET_ACCESS_KEY=test\" -var \"LOCALSTACK=true\" -var \"APP_DOMAIN=braille-dev.jptr.software\"",
+    "localaws": "AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 aws --endpoint-url=http://localhost:4566",
+    "test:e2e": "npx playwright test",
+    "test:e2e:debug": "npx playwright test --ui",
+    "certs": "mkcert -cert-file ./volumes/certs/cert.pem -key-file ./volumes/certs/key.pem localhost 127.0.0.1",
+    "keys": "openssl genpkey -algorithm RSA -outform PEM -out private_key.pem -pkeyopt rsa_keygen_bits:2048 && openssl rsa -pubout -in private_key.pem -out public_key.pem"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^20.11.24",
+    "turbo": "^1.13.4"
+  },
+  "packageManager": "yarn@4.0.2",
+  "resolutions": {
+    "jose@npm:^4.15.5": "patch:jose@npm%3A4.15.5#~/.yarn/patches/jose-npm-4.15.5-15e487a3a1.patch",
+    "jose@npm:^4.9.2": "patch:jose@npm%3A4.15.5#~/.yarn/patches/jose-npm-4.15.5-15e487a3a1.patch",
+    "jose@npm:^4.15.1": "patch:jose@npm%3A4.15.5#~/.yarn/patches/jose-npm-4.15.5-15e487a3a1.patch"
+  }
+}
