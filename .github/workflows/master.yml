@@ -58,19 +58,20 @@ jobs:
           echo "ci_user_access_key_id=$(terraform output -raw CI_USER_ACCESS_KEY_ID)" >> $GITHUB_OUTPUT
           echo "ci_user_access_secret_key=$(terraform output -raw CI_USER_ACCESS_KEY_SECRET)" >> $GITHUB_OUTPUT
 
-  # buildapp:
-  #   name: Build Application
-  #   runs-on: ubuntu-24.04
-  #   needs:
-  #     - shared
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - id: buildapp
-  #       uses: ./.github/actions/buildapp
-  #       with:
-  #         IMAGE_TAG: ${{ needs.shared.outputs.ecr_url }}:application_${{ github.sha }}
-  #         AWS_ACCESS_KEY_ID: ${{ needs.shared.outputs.ci_user_access_key_id }}
-  #         AWS_SECRET_ACCESS_KEY: ${{ needs.shared.outputs.ci_user_access_secret_key }}
+  buildapp:
+    name: Build Application
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+    steps:
+      - uses: actions/checkout@v4
+      - id: buildapp
+        uses: ./.github/actions/buildapp
+        with:
+          IMAGE_TAG: ${{ needs.shared.outputs.ecr_url }}:application_${{ github.sha }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ needs.shared.outputs.ci_user_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ needs.shared.outputs.ci_user_access_secret_key }}
 
   # worker:
   #   name: Build Worker Container

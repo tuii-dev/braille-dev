@@ -43,7 +43,7 @@ module "database" {
   
   # dynamo stuff
   aws_region = var.aws_region
-  route_table_ids = [aws_route_table.private[0].id]
+  private_route_table_ids = [aws_route_table.private[0].id]
 }
 
 output "DATABASE_NAME" {
