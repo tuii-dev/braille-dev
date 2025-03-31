@@ -117,13 +117,15 @@ resource "aws_ecr_repository_policy" "shared_ecr_policy" {
 # OUTPUTS
 
 output "ECR_REPOSITORY_URL" {
-  value = aws_ecr_repository.container_repository.repository_url
-  sensitive = false
+  description = "URL of the ECR repository"
+  value       = aws_ecr_repository.container_repository.repository_url
+  sensitive   = false
 }
 
 output "ECR_REPOSITORY_NAME" {
-  value = aws_ecr_repository.container_repository.name
-  sensitive = false
+  description = "Name of the ECR repository"
+  value       = aws_ecr_repository.container_repository.name
+  sensitive   = false
 }
 
 output "CI_USER_ACCESS_KEY_ID" {

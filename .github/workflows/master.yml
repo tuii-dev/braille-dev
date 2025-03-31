@@ -55,17 +55,23 @@ jobs:
         run: |
           terraform apply -auto-approve
           
-          # Store outputs in variables first
-          ECR_URL="$(terraform output -raw ECR_REPOSITORY_URL)"
-          CI_KEY_ID="$(terraform output -raw CI_USER_ACCESS_KEY_ID)"
-          CI_KEY_SECRET="$(terraform output -raw CI_USER_ACCESS_KEY_SECRET)"
+          # Explicitly get and set each output
+          ECR_URL=$(terraform output -raw ECR_REPOSITORY_URL)
+          echo "::set-output name=ecr_url::$ECR_URL"
           
-          # Write to GITHUB_OUTPUT using proper escaping
-          echo "ecr_url=$ECR_URL" >> $GITHUB_OUTPUT
-          echo "ci_user_access_key_id=$CI_KEY_ID" >> $GITHUB_OUTPUT
-          echo "ci_user_access_secret_key=$CI_KEY_SECRET" >> $GITHUB_OUTPUT
+          CI_KEY_ID=$(terraform output -raw CI_USER_ACCESS_KEY_ID)
+          echo "::add-mask::$CI_KEY_ID"
+          echo "::set-output name=ci_user_access_key_id::$CI_KEY_ID"
+          
+          CI_KEY_SECRET=$(terraform output -raw CI_USER_ACCESS_KEY_SECRET)
+          echo "::add-mask::$CI_KEY_SECRET"
+          echo "::set-output name=ci_user_access_secret_key::$CI_KEY_SECRET"
+          
+          # Debug: Print ECR URL (non-sensitive)
+          echo "ECR URL: $ECR_URL"
         env:
           TF_LOG_LEVEL: INFO # Ensures debug logs don't interfere with outputs
+          ACTIONS_STEP_DEBUG: true # Enable debug logging
 
   buildapp:
     name: Build Application
