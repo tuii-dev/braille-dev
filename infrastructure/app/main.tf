@@ -1,6 +1,6 @@
 terraform {
   backend "remote" {
-    organization = "braille"
+    organization = "braille-dev"
 
     workspaces {
       prefix = "braille-application-"
@@ -34,7 +34,7 @@ provider "aws" {
 
 
 data "tfe_outputs" "services" {
-  organization = "braille"
+  organization = "braille-dev"
   workspace    = replace(terraform.workspace, "application", "services")
 }
 

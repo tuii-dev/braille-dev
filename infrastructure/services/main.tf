@@ -1,6 +1,6 @@
 terraform {
   backend "remote" {
-    organization = "braille"
+    organization = "braille-dev"
 
     workspaces {
       prefix = "braille-services-"
