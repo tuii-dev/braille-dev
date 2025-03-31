@@ -24,7 +24,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "ap-southeast-2"
+  region = "ca-central-1"
 }
 
 provider "aws" {
