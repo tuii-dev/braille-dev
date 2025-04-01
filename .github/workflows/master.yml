@@ -53,25 +53,53 @@ jobs:
         id: apply
         working-directory: infrastructure/shared
         run: |
+          # Run terraform apply and capture output
           terraform apply -auto-approve
           
-          # Explicitly get and set each output
-          ECR_URL=$(terraform output -raw ECR_REPOSITORY_URL)
-          echo "::set-output name=ecr_url::$ECR_URL"
+          # Explicitly get each output and verify
+          echo "Getting Terraform outputs..."
           
-          CI_KEY_ID=$(terraform output -raw CI_USER_ACCESS_KEY_ID)
+          # Get all outputs first
+          echo "Getting Terraform outputs..."
+          ALL_OUTPUTS=$(terraform output -json)
+          
+          # Extract and verify ECR URL
+          ECR_URL=$(echo "$ALL_OUTPUTS" | jq -r '.ECR_REPOSITORY_URL.value')
+          if [ "$ECR_URL" = "null" ] || [ -z "$ECR_URL" ]; then
+            echo "Error: ECR_REPOSITORY_URL output is missing or null"
+            echo "All outputs:"
+            echo "$ALL_OUTPUTS" | jq
+            exit 1
+          fi
+          echo "ECR URL retrieved successfully: ${ECR_URL:0:10}..."
+          
+          # Get and mask AWS credentials
+          CI_KEY_ID=$(echo "$ALL_OUTPUTS" | jq -r '.CI_USER_ACCESS_KEY_ID.value')
+          CI_KEY_SECRET=$(echo "$ALL_OUTPUTS" | jq -r '.CI_USER_ACCESS_KEY_SECRET.value')
           echo "::add-mask::$CI_KEY_ID"
-          echo "::set-output name=ci_user_access_key_id::$CI_KEY_ID"
-          
-          CI_KEY_SECRET=$(terraform output -raw CI_USER_ACCESS_KEY_SECRET)
           echo "::add-mask::$CI_KEY_SECRET"
-          echo "::set-output name=ci_user_access_secret_key::$CI_KEY_SECRET"
           
-          # Debug: Print ECR URL (non-sensitive)
-          echo "ECR URL: $ECR_URL"
+          # Write outputs with proper escaping
+          echo "ecr_url=${ECR_URL}" >> "$GITHUB_OUTPUT"
+          echo "ci_user_access_key_id=${CI_KEY_ID}" >> "$GITHUB_OUTPUT"
+          echo "ci_user_access_secret_key=${CI_KEY_SECRET}" >> "$GITHUB_OUTPUT"
+          
+          # Verify output was written
+          echo "Outputs written to GITHUB_OUTPUT"
+          echo "ECR URL length: $(echo -n "$ECR_URL" | wc -c)"
+
+          # Debug: Print non-sensitive outputs only
+          echo "ECR URL value set successfully"
         env:
           TF_LOG_LEVEL: INFO # Ensures debug logs don't interfere with outputs
-          ACTIONS_STEP_DEBUG: true # Enable debug logging
+          
+      - name: Debug - Verify outputs
+        run: |
+          echo "=== Verifying Terraform outputs ==="
+          echo "ECR URL output exists: ${{ steps.apply.outputs.ecr_url != '' }}"
+          echo "ECR URL value length: $(echo -n "${{ steps.apply.outputs.ecr_url }}" | wc -c)"
+          echo "First 10 chars of ECR URL: $(echo "${{ steps.apply.outputs.ecr_url }}" | cut -c1-10)..."
+          echo "================================="
 
   buildapp:
     name: Build Application
@@ -79,7 +107,16 @@ jobs:
     needs:
       - shared
     steps:
+      - name: Debug - Check shared job outputs
+        run: |
+          echo "=== Checking shared job outputs ==="
+          echo "ECR URL is present: ${{ needs.shared.outputs.ecr_url != '' }}"
+          echo "Full Image Tag will be: ${{ needs.shared.outputs.ecr_url }}:application_${{ github.sha }}"
+          echo "AWS credentials are present: ${{ needs.shared.outputs.ci_user_access_key_id != '' && needs.shared.outputs.ci_user_access_secret_key != '' }}"
+          echo "==================================="
+
       - uses: actions/checkout@v4
+
       - id: buildapp
         uses: ./.github/actions/buildapp
         with:

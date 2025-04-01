@@ -118,7 +118,7 @@ resource "aws_ecr_repository_policy" "shared_ecr_policy" {
 
 output "ECR_REPOSITORY_URL" {
   description = "URL of the ECR repository"
-  value       = aws_ecr_repository.container_repository.repository_url
+  value       = coalesce(aws_ecr_repository.container_repository.repository_url, "")
   sensitive   = false
 }
 
