@@ -1,27 +1,28 @@
 FROM node:20-alpine AS base
 
-FROM base AS builder
+FROM base AS prune
 
 RUN apk add --no-cache libc6-compat
 RUN apk update
 
 WORKDIR /app
 
-# Enable corepack and install correct yarn version
-RUN corepack enable
-RUN corepack prepare yarn@4.0.2 --activate
+RUN yarn global add turbo@1.13.4
+COPY . .
+RUN turbo prune @jptr/braille-worker --docker
 
-# Copy root workspace files first
-COPY package.json .
-COPY turbo.json .
-COPY yarn.lock .
-COPY .gitignore .
+# INSTALLER
+FROM base AS installer
+WORKDIR /app
 
-# Copy the worker package
-COPY packages/worker ./packages/worker
+# First install the dependencies (as they change less often)
+COPY .gitignore .gitignore
+COPY --from=prune /app/out/json/ .
+COPY --from=prune /app/out/yarn.lock ./yarn.lock
+RUN YARN_ENABLE_INLINE_BUILDS=1  yarn install
 
-# Install dependencies and build
-RUN yarn install
+# BUILDER
+COPY --from=prune /app/out/full/ .
 RUN yarn turbo run build --filter=@jptr/braille-worker...
 
 # RUNNER
@@ -29,14 +30,11 @@ FROM base AS runner
 RUN apk add --no-cache libc6-compat
 RUN apk update
 RUN apk add --no-cache bash inotify-tools imagemagick graphicsmagick ghostscript
-
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy built application
-COPY --from=builder /app/packages/worker/dist ./dist
-COPY --from=builder /app/packages/worker/package.json .
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=installer /app/ .
 
 EXPOSE 9000
-CMD ["node", "dist/main"]
+WORKDIR /app/packages/worker
+CMD LANGCHAIN_CALLBACKS_BACKGROUND=true yarn start:prod

@@ -1,41 +1,52 @@
 FROM node:22-alpine AS base
 
-FROM base AS builder
+FROM base AS prune
 
 RUN apk add --no-cache libc6-compat
 RUN apk update
 
 WORKDIR /app
 
-# Enable corepack and install correct yarn version
-RUN corepack enable
-RUN corepack prepare yarn@4.0.2 --activate
+RUN yarn global add turbo@1.13.4
+COPY . .
+RUN turbo prune @jptr/braille-application --docker
 
-# Copy root workspace files first
-COPY package.json .
-COPY turbo.json .
-COPY yarn.lock .
-COPY .gitignore .
+# INSTALLER
+FROM base AS installer
+WORKDIR /app
 
-# Copy the application package
-COPY packages/application ./packages/application
+# Install dependencies based on the preferred package manager
+COPY .gitignore .gitignore
+COPY --from=prune /app/out/json/ .
+COPY --from=prune /app/out/yarn.lock ./yarn.lock
+RUN YARN_ENABLE_INLINE_BUILDS=1 yarn install
 
-# Install dependencies and build
-RUN yarn install
+# Rebuild the source code only when needed
+# FROM base AS builder
+# WORKDIR /app
+# COPY --from=installer /app/node_modules ./node_modules
+
+COPY --from=prune /app/out/full/ .
 RUN yarn turbo run build --filter=@jptr/braille-application...
+
+# If using npm comment out above and use below instead
+# RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Uncomment the following line in case you want to disable telemetry during runtime.
+# ENV NEXT_TELEMETRY_DISABLED 1
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/packages/application/.next/standalone ./
+COPY --from=installer --chown=nextjs:nodejs /app/packages/application/.next/standalone ./
 WORKDIR /app/packages/application
-COPY --from=builder /app/packages/application/public ./public
-COPY --from=builder /app/packages/application/.next/static ./.next/static
+COPY --from=installer --chown=nextjs:nodejs /app/packages/application/public ./public
+COPY --from=installer --chown=nextjs:nodejs /app/packages/application/.next/static ./.next/static
 
 USER nextjs
 

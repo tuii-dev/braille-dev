@@ -3,8 +3,7 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "inputs": ["src/**", "apps/**", "libs/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "db:reset": {
       "cache": false
@@ -33,6 +32,5 @@
       "outputs": ["dist/**"],
       "cache": false
     }
-  },
-  "globalDependencies": ["package.json", "yarn.lock", "turbo.json"]
+  }
 }
