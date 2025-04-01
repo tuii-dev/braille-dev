@@ -73,24 +73,26 @@ jobs:
           CI_KEY_SECRET=$(echo "$ALL_OUTPUTS" | jq -r '.CI_USER_ACCESS_KEY_SECRET.value')
           
           # Save outputs to a file
-          mkdir -p ./tf-outputs
-          echo "$ECR_URL" > ./tf-outputs/ecr_url
-          echo "$CI_KEY_ID" > ./tf-outputs/ci_key_id
-          echo "$CI_KEY_SECRET" > ./tf-outputs/ci_key_secret
-          echo "Infrastructure outputs saved to files"
+          OUTPUTS_DIR="$GITHUB_WORKSPACE/tf-outputs"
+          mkdir -p "$OUTPUTS_DIR"
+          
+          echo "Saving outputs to: $OUTPUTS_DIR"
+          echo "$ECR_URL" > "$OUTPUTS_DIR/ecr_url"
+          echo "$CI_KEY_ID" > "$OUTPUTS_DIR/ci_key_id"
+          echo "$CI_KEY_SECRET" > "$OUTPUTS_DIR/ci_key_secret"
+          
+          echo "=== Verifying files were created ==="
+          ls -la "$OUTPUTS_DIR"
+          echo "=== File contents ==="
+          cat "$OUTPUTS_DIR/ecr_url" | sed 's/./*/g'  # Mask the contents
+          echo "=== End verification ==="
 
       - name: Upload Terraform outputs
         uses: actions/upload-artifact@v4
         with:
           name: tf-outputs
-          path: ./tf-outputs/
+          path: ${{ github.workspace }}/tf-outputs
           retention-days: 1
-
-      - name: Verify outputs
-        run: |
-          echo "=== Verifying saved outputs ==="
-          ls -l ./tf-outputs/
-          echo "=== Done ==="
           
       - name: Debug - Verify outputs
         run: |
