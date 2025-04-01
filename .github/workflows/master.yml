@@ -51,14 +51,14 @@ jobs:
         run: |
           # Run terraform apply and capture output
           terraform apply -auto-approve
-          
+
           # Explicitly get each output and verify
           echo "Getting Terraform outputs..."
-          
+
           # Get all outputs first
           echo "Getting Terraform outputs..."
           ALL_OUTPUTS=$(terraform output -json)
-          
+
           # Extract and verify ECR URL
           ECR_URL=$(echo "$ALL_OUTPUTS" | jq -r '.ECR_REPOSITORY_URL.value')
           if [ "$ECR_URL" = "null" ] || [ -z "$ECR_URL" ]; then
@@ -67,20 +67,20 @@ jobs:
             echo "$ALL_OUTPUTS" | jq
             exit 1
           fi
-          
+
           # Get AWS credentials
           CI_KEY_ID=$(echo "$ALL_OUTPUTS" | jq -r '.CI_USER_ACCESS_KEY_ID.value')
           CI_KEY_SECRET=$(echo "$ALL_OUTPUTS" | jq -r '.CI_USER_ACCESS_KEY_SECRET.value')
-          
+
           # Save outputs to a file
           OUTPUTS_DIR="$GITHUB_WORKSPACE/tf-outputs"
           mkdir -p "$OUTPUTS_DIR"
-          
+
           echo "Saving outputs to: $OUTPUTS_DIR"
           echo "$ECR_URL" > "$OUTPUTS_DIR/ecr_url"
           echo "$CI_KEY_ID" > "$OUTPUTS_DIR/ci_key_id"
           echo "$CI_KEY_SECRET" > "$OUTPUTS_DIR/ci_key_secret"
-          
+
           echo "=== Verifying files were created ==="
           ls -la "$OUTPUTS_DIR"
           echo "=== File contents ==="
@@ -93,14 +93,6 @@ jobs:
           name: tf-outputs
           path: ${{ github.workspace }}/tf-outputs
           retention-days: 1
-          
-      - name: Debug - Verify outputs
-        run: |
-          echo "=== Verifying Terraform outputs ==="
-          echo "ECR URL output exists: ${{ steps.apply.outputs.ecr_url != '' }}"
-          echo "ECR URL value length: $(echo -n "${{ steps.apply.outputs.ecr_url }}" | wc -c)"
-          echo "First 10 chars of ECR URL: $(echo "${{ steps.apply.outputs.ecr_url }}" | cut -c1-10)..."
-          echo "================================="
 
   buildapp:
     name: Build Application
@@ -115,20 +107,20 @@ jobs:
         with:
           name: tf-outputs
           path: ./tf-outputs
-          
+
       - name: Load outputs into environment
         run: |
           mkdir -p ./tf-outputs
           ECR_URL=$(cat ./tf-outputs/ecr_url)
           CI_KEY_ID=$(cat ./tf-outputs/ci_key_id)
           CI_KEY_SECRET=$(cat ./tf-outputs/ci_key_secret)
-          
+
           echo "=== Checking outputs ==="
           echo "ECR URL is present: $([ ! -z "$ECR_URL" ] && echo 'true' || echo 'false')"
           echo "Full Image Tag will be: ${ECR_URL}:application_${{ github.sha }}"
           echo "AWS credentials are present: $([ ! -z "$CI_KEY_ID" ] && [ ! -z "$CI_KEY_SECRET" ] && echo 'true' || echo 'false')"
           echo "==========================="
-          
+
           # Export for subsequent steps
           echo "ECR_URL=$ECR_URL" >> "$GITHUB_ENV"
           echo "CI_KEY_ID=$CI_KEY_ID" >> "$GITHUB_ENV"
@@ -142,41 +134,65 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ env.CI_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.CI_KEY_SECRET }}
 
-  # worker:
-  #   name: Build Worker Container
-  #   runs-on: ubuntu-24.04
-  #   needs:
-  #     - shared
-  #   steps:
-  #     - uses: actions/checkout@v4
+  worker:
+    name: Build Worker Container
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ needs.shared.outputs.ci_user_access_key_id }}
-  #         aws-secret-access-key: ${{ needs.shared.outputs.ci_user_access_secret_key }}
-  #         aws-region: ap-southeast-2
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: tf-outputs
+          path: ./tf-outputs
 
-  #     - name: Login to Amazon ECR
-  #       id: ecr_auth
-  #       uses: aws-actions/amazon-ecr-login@v1
-  #       with:
-  #         mask-password: "true"
+      - name: Load outputs into environment
+        run: |
+          mkdir -p ./tf-outputs
+          ECR_URL=$(cat ./tf-outputs/ecr_url)
+          CI_KEY_ID=$(cat ./tf-outputs/ci_key_id)
+          CI_KEY_SECRET=$(cat ./tf-outputs/ci_key_secret)
+            
+            echo "=== Checking outputs ==="
+            echo "ECR URL is present: $([ ! -z "$ECR_URL" ] && echo 'true' || echo 'false')"
+            echo "Full Image Tag will be: ${ECR_URL}:application_${{ github.sha }}"
+            echo "AWS credentials are present: $([ ! -z "$CI_KEY_ID" ] && [ ! -z "$CI_KEY_SECRET" ] && echo 'true' || echo 'false')"
+            echo "==========================="
+            
+            # Export for subsequent steps
+            echo "ECR_URL=$ECR_URL" >> "$GITHUB_ENV"
+            echo "CI_KEY_ID=$CI_KEY_ID" >> "$GITHUB_ENV"
+            echo "CI_KEY_SECRET=$CI_KEY_SECRET" >> "$GITHUB_ENV"
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
-  #       with:
-  #         platforms: linux/amd64
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.CI_KEY_ID }}
+          aws-secret-access-key: ${{ env.CI_KEY_SECRET }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-  #     - name: Build and push
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         platforms: linux/amd64
-  #         context: .
-  #         file: ./packages/worker/Dockerfile
-  #         push: true
-  #         tags: |
-  #           ${{ needs.shared.outputs.ecr_url }}:worker_${{ github.sha }}
+      - name: Login to Amazon ECR
+        id: ecr_auth
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: "true"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64
+          context: .
+          file: ./packages/worker/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_URL }}:worker_${{ github.sha }}
 
   #############################################
   # stg_services:
