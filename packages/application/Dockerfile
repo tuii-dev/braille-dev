@@ -9,7 +9,7 @@ WORKDIR /app
 
 RUN yarn global add turbo@1.13.4
 COPY . .
-RUN turbo prune @jptr/braille-application --docker
+RUN turbo prune @jptr/braille-application --docker --scope="@jptr/braille-application" --no-deps
 
 # INSTALLER
 FROM base AS installer

@@ -8,8 +8,8 @@ RUN apk update
 WORKDIR /app
 
 RUN yarn global add turbo@1.13.4
-COPY . .
-RUN turbo prune @jptr/braille-worker --docker
+COPY packages/worker .
+RUN turbo prune "@jptr/braille-worker" --docker --scope="@jptr/braille-worker" --no-deps
 
 # INSTALLER
 FROM base AS installer
