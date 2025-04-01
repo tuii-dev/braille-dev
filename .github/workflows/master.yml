@@ -9,10 +9,6 @@ jobs:
   shared:
     name: Shared Infrastructure
     runs-on: ubuntu-24.04
-    outputs:
-      ecr_url: ${{ steps.apply.outputs.ecr_url }}
-      ci_user_access_key_id: ${{ steps.apply.outputs.ci_user_access_key_id }}
-      ci_user_access_secret_key: ${{ steps.apply.outputs.ci_user_access_secret_key }}
 
     environment:
       name: Production
@@ -71,27 +67,30 @@ jobs:
             echo "$ALL_OUTPUTS" | jq
             exit 1
           fi
-          echo "ECR URL retrieved successfully: ${ECR_URL:0:10}..."
           
-          # Get and mask AWS credentials
+          # Get AWS credentials
           CI_KEY_ID=$(echo "$ALL_OUTPUTS" | jq -r '.CI_USER_ACCESS_KEY_ID.value')
           CI_KEY_SECRET=$(echo "$ALL_OUTPUTS" | jq -r '.CI_USER_ACCESS_KEY_SECRET.value')
-          echo "::add-mask::$CI_KEY_ID"
-          echo "::add-mask::$CI_KEY_SECRET"
           
-          # Write outputs with proper escaping
-          echo "ecr_url=${ECR_URL}" >> "$GITHUB_OUTPUT"
-          echo "ci_user_access_key_id=${CI_KEY_ID}" >> "$GITHUB_OUTPUT"
-          echo "ci_user_access_secret_key=${CI_KEY_SECRET}" >> "$GITHUB_OUTPUT"
-          
-          # Verify output was written
-          echo "Outputs written to GITHUB_OUTPUT"
-          echo "ECR URL length: $(echo -n "$ECR_URL" | wc -c)"
+          # Save outputs to a file
+          mkdir -p ./tf-outputs
+          echo "$ECR_URL" > ./tf-outputs/ecr_url
+          echo "$CI_KEY_ID" > ./tf-outputs/ci_key_id
+          echo "$CI_KEY_SECRET" > ./tf-outputs/ci_key_secret
+          echo "Infrastructure outputs saved to files"
 
-          # Debug: Print non-sensitive outputs only
-          echo "ECR URL value set successfully"
-        env:
-          TF_LOG_LEVEL: INFO # Ensures debug logs don't interfere with outputs
+      - name: Upload Terraform outputs
+        uses: actions/upload-artifact@v3
+        with:
+          name: tf-outputs
+          path: ./tf-outputs/
+          retention-days: 1
+
+      - name: Verify outputs
+        run: |
+          echo "=== Verifying saved outputs ==="
+          ls -l ./tf-outputs/
+          echo "=== Done ==="
           
       - name: Debug - Verify outputs
         run: |
@@ -107,23 +106,38 @@ jobs:
     needs:
       - shared
     steps:
-      - name: Debug - Check shared job outputs
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v3
+        with:
+          name: tf-outputs
+          path: ./tf-outputs
+          
+      - name: Load outputs into environment
         run: |
-          echo "=== Checking shared job outputs ==="
-          echo "ECR URL is present: ${{ needs.shared.outputs.ecr_url != '' }}"
-          echo "Full Image Tag will be: ${{ needs.shared.outputs.ecr_url }}:application_${{ github.sha }}"
-          echo "AWS credentials are present: ${{ needs.shared.outputs.ci_user_access_key_id != '' && needs.shared.outputs.ci_user_access_secret_key != '' }}"
-          echo "==================================="
+          ECR_URL=$(cat ./tf-outputs/ecr_url)
+          CI_KEY_ID=$(cat ./tf-outputs/ci_key_id)
+          CI_KEY_SECRET=$(cat ./tf-outputs/ci_key_secret)
+          
+          echo "=== Checking outputs ==="
+          echo "ECR URL is present: $([ ! -z "$ECR_URL" ] && echo 'true' || echo 'false')"
+          echo "Full Image Tag will be: ${ECR_URL}:application_${{ github.sha }}"
+          echo "AWS credentials are present: $([ ! -z "$CI_KEY_ID" ] && [ ! -z "$CI_KEY_SECRET" ] && echo 'true' || echo 'false')"
+          echo "==========================="
+          
+          # Export for subsequent steps
+          echo "ECR_URL=$ECR_URL" >> "$GITHUB_ENV"
+          echo "CI_KEY_ID=$CI_KEY_ID" >> "$GITHUB_ENV"
+          echo "CI_KEY_SECRET=$CI_KEY_SECRET" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
 
       - id: buildapp
         uses: ./.github/actions/buildapp
         with:
-          IMAGE_TAG: ${{ needs.shared.outputs.ecr_url }}:application_${{ github.sha }}
+          IMAGE_TAG: ${{ env.ECR_URL }}:application_${{ github.sha }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ needs.shared.outputs.ci_user_access_key_id }}
-          AWS_SECRET_ACCESS_KEY: ${{ needs.shared.outputs.ci_user_access_secret_key }}
+          AWS_ACCESS_KEY_ID: ${{ env.CI_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.CI_KEY_SECRET }}
 
   # worker:
   #   name: Build Worker Container
