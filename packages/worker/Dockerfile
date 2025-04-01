@@ -9,11 +9,11 @@ WORKDIR /app
 
 RUN yarn global add turbo@1.13.4
 # Copy root workspace files first
-COPY package.json .
-COPY turbo.json .
-COPY yarn.lock .
+COPY ../../package.json .
+COPY ../../turbo.json .
+COPY ../../yarn.lock .
 # Then copy the worker package
-COPY packages/worker ./packages/worker
+COPY . ./packages/worker
 RUN turbo prune "@jptr/braille-worker" --docker --scope="@jptr/braille-worker" --no-deps
 
 # INSTALLER
@@ -21,7 +21,7 @@ FROM base AS installer
 WORKDIR /app
 
 # First install the dependencies (as they change less often)
-COPY .gitignore .gitignore
+COPY ../../.gitignore .gitignore
 COPY --from=prune /app/out/json/ .
 COPY --from=prune /app/out/yarn.lock ./yarn.lock
 RUN YARN_ENABLE_INLINE_BUILDS=1  yarn install
