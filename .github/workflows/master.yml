@@ -106,6 +106,8 @@ jobs:
     needs:
       - shared
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download Terraform outputs
         uses: actions/download-artifact@v4
         with:
@@ -114,6 +116,7 @@ jobs:
           
       - name: Load outputs into environment
         run: |
+          mkdir -p ./tf-outputs
           ECR_URL=$(cat ./tf-outputs/ecr_url)
           CI_KEY_ID=$(cat ./tf-outputs/ci_key_id)
           CI_KEY_SECRET=$(cat ./tf-outputs/ci_key_secret)
@@ -128,8 +131,6 @@ jobs:
           echo "ECR_URL=$ECR_URL" >> "$GITHUB_ENV"
           echo "CI_KEY_ID=$CI_KEY_ID" >> "$GITHUB_ENV"
           echo "CI_KEY_SECRET=$CI_KEY_SECRET" >> "$GITHUB_ENV"
-
-      - uses: actions/checkout@v4
 
       - id: buildapp
         uses: ./.github/actions/buildapp
