@@ -7,14 +7,18 @@ RUN apk update
 
 WORKDIR /app
 
+# Enable corepack and install correct yarn version
+RUN corepack enable
+RUN corepack prepare yarn@4.0.2 --activate
+
 # Copy root workspace files first
-COPY ../../package.json .
-COPY ../../turbo.json .
-COPY ../../yarn.lock .
-COPY ../../.gitignore .
+COPY package.json .
+COPY turbo.json .
+COPY yarn.lock .
+COPY .gitignore .
 
 # Copy the application package
-COPY . ./packages/application
+COPY packages/application ./packages/application
 
 # Install dependencies and build
 RUN yarn install
