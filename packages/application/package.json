@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",

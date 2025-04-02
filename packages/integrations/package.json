@@ -7,7 +7,8 @@
     "dev": "tsc -b && yarn copyfiles",
     "copyfiles": "copyfiles integrations/*.yaml dist/",
     "build": "tsc -b && yarn copyfiles",
-    "generate": "docker run --rm -v $(pwd)/integrations:/docs openapitools/openapi-generator-cli generate -i /docs/quickbooks.yaml -g openapi -o /docs"
+    "generate": "docker run --rm -v $(pwd)/integrations:/docs openapitools/openapi-generator-cli generate -i /docs/quickbooks.yaml -g openapi -o /docs",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@jptr/braille-prisma": "^1.0.0",

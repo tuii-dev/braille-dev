@@ -5,7 +5,8 @@
   "license": "MIT",
   "repository": "https://github.com/jptrsoftware/braille.git",
   "scripts": {
-    "dev": "npx email dev --dir ./templates --port 3333"
+    "dev": "npx email dev --dir ./templates --port 3333",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@react-email/components": "^0.0.25"

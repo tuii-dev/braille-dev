@@ -15,7 +15,8 @@
     "db:generate": "npx prisma generate",
     "db:seed": "npx prisma db seed",
     "dev": "tsc -b",
-    "build": "yarn dlx prisma generate && tsc -b"
+    "build": "yarn dlx prisma generate && tsc -b",
+    "clean": "rm -rf dist"
   },
   "repository": "https://github.com/jptrsoftware/braille.git",
   "dependencies": {
