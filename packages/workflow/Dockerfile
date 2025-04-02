@@ -7,6 +7,9 @@ RUN apk update
 
 WORKDIR /app
 
+# Copy package.json files first
+COPY package.json .
+
 RUN yarn global add turbo@1.13.4
 COPY . .
 RUN turbo prune @jptr/braille-workflow --docker
