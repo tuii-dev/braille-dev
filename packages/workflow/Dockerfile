@@ -20,10 +20,6 @@ COPY .gitignore .gitignore
 COPY --from=prune /app/out/json/ .
 COPY --from=prune /app/out/yarn.lock ./yarn.lock
 
-# Install core dependencies first
-# RUN YARN_ENABLE_INLINE_BUILDS=1 yarn install
-
-# Add missing microservice transports + swagger
 # @nestjs/microservices requires specific transport 
 # dependencies even if unused, and Turborepo's pruning 
 # is too aggressive. We need to inject these dependencies 
