@@ -19,7 +19,16 @@ WORKDIR /app
 COPY .gitignore .gitignore
 COPY --from=prune /app/out/json/ .
 COPY --from=prune /app/out/yarn.lock ./yarn.lock
-RUN YARN_ENABLE_INLINE_BUILDS=1  yarn install
+
+# 2. Install core dependencies first
+RUN YARN_ENABLE_INLINE_BUILDS=1 yarn install
+
+# 3. Add missing microservice transports + swagger
+RUN cd packages/workflow && \
+    yarn add @grpc/grpc-js @grpc/proto-loader kafkajs mqtt nats amqplib amqp-connection-manager @nestjs/swagger
+
+# 4. Rebuild dependencies
+RUN YARN_ENABLE_INLINE_BUILDS=1 yarn install
 
 # BUILDER
 COPY --from=prune /app/out/full/ .
