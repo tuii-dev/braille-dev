@@ -13,6 +13,9 @@ inputs:
   WORKER_IMAGE_TAG:
     required: true
     description: "The tag of the worker image to test against"
+  WORKFLOW_IMAGE_TAG:
+    required: true
+    description: "The tag of the workflow image to test against"
 runs:
   using: "composite"
   steps:
@@ -72,7 +75,7 @@ runs:
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID}}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-southeast-2
+        aws-region: ca-central-1
 
     - name: Login to Amazon ECR
       id: ecr_auth
@@ -100,6 +103,7 @@ runs:
       run: |
         echo 'BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"' >> .env
         echo 'worker_image="${{ inputs.WORKER_IMAGE_TAG }}"' >> .env
+        echo 'workflow_image="${{ inputs.WORKFLOW_IMAGE_TAG }}"' >> .env
         docker-compose -v
         docker-compose -f "docker-compose.e2e.yml" up -d
 
