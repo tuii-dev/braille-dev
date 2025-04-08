@@ -400,24 +400,49 @@ jobs:
           WORKSPACE: ${{ secrets.WORKSPACE }}
           BASTION_PRIVATE_KEY: ${{ secrets.BASTION_PRIVATE_KEY }}
 
-  # prod_application:
-  #   name: Prod — Deploy Application
-  #   runs-on: ubuntu-24.04
-  #   needs:
-  #     - shared
-  #     - integration
-  #     - prod_services
-  #     - prod_dbmigrate
+  prod_application:
+    name: Prod — Deploy Application
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+      # - integration
+      - prod_services
+      - prod_dbmigrate
 
-  #   environment:
-  #     name: Production
+    environment:
+      name: Production
 
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - id: migrate
-  #       uses: ./.github/actions/application
-  #       with:
-  #         TF_TOKEN: ${{ secrets.TF_TOKEN }}
-  #         WORKSPACE: ${{ secrets.WORKSPACE }}
-  #         ECR_URL: ${{ needs.shared.outputs.ecr_url }}
-  #         IMAGE_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: tf-outputs
+          path: ./tf-outputs
+
+      - name: Load outputs into environment
+        run: |
+          mkdir -p ./tf-outputs
+          ECR_URL=$(cat ./tf-outputs/ecr_url)
+          CI_KEY_ID=$(cat ./tf-outputs/ci_key_id)
+          CI_KEY_SECRET=$(cat ./tf-outputs/ci_key_secret)
+
+            echo "=== Checking outputs ==="
+            echo "ECR URL is present: $([ ! -z "$ECR_URL" ] && echo 'true' || echo 'false')"
+            echo "Full Image Tag will be: ${ECR_URL}:application_${{ github.sha }}"
+            echo "AWS credentials are present: $([ ! -z "$CI_KEY_ID" ] && [ ! -z "$CI_KEY_SECRET" ] && echo 'true' || echo 'false')"
+            echo "==========================="
+
+            # Export for subsequent steps
+            echo "ECR_URL=$ECR_URL" >> "$GITHUB_ENV"
+            echo "CI_KEY_ID=$CI_KEY_ID" >> "$GITHUB_ENV"
+            echo "CI_KEY_SECRET=$CI_KEY_SECRET" >> "$GITHUB_ENV"
+
+      - id: migrate
+        uses: ./.github/actions/application
+        with:
+          TF_TOKEN: ${{ secrets.TF_TOKEN }}
+          WORKSPACE: ${{ secrets.WORKSPACE }}
+          ECR_URL: ${{ env.ECR_URL }}
+          IMAGE_SHA: ${{ github.sha }}
