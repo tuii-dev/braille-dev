@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "uploads" {
-  bucket = "${terraform.workspace}-braille-uploads"
+  bucket = "${terraform.workspace}-braille-uploads-travis"
 
   tags = {
     Environment = "${terraform.workspace}"
