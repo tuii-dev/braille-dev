@@ -359,24 +359,24 @@ jobs:
   #         IMAGE_SHA: ${{ github.sha }}
   #############################################
 
-  # prod_services:
-  #   name: Prod — Application Services
-  #   runs-on: ubuntu-24.04
-  #   needs:
-  #     - shared
-  #     # - stg_application
-  #     - integration
-  #   outputs:
-  #     DATABASE_URL: ${{ steps.migrate.outputs.DATABASE_URL }}
-  #   environment:
-  #     name: Production
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - id: migrate
-  #       uses: ./.github/actions/services
-  #       with:
-  #         TF_TOKEN: ${{ secrets.TF_TOKEN }}
-  #         WORKSPACE: ${{ secrets.WORKSPACE }}
+  prod_services:
+    name: Prod — Application Services
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+      # - stg_application
+      - integration
+    outputs:
+      DATABASE_URL: ${{ steps.migrate.outputs.DATABASE_URL }}
+    environment:
+      name: Production
+    steps:
+      - uses: actions/checkout@v4
+      - id: migrate
+        uses: ./.github/actions/services
+        with:
+          TF_TOKEN: ${{ secrets.TF_TOKEN }}
+          WORKSPACE: ${{ secrets.WORKSPACE }}
 
   # prod_dbmigrate:
   #   name: Prod — Database Migration
