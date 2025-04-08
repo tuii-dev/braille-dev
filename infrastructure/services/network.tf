@@ -15,7 +15,7 @@ variable "private_subnet_cidr" {
 
 variable "aws_region" {
   type    = string
-  default = "ap-southeast-2"
+  default = "ca-central-1"
 }
 
 
@@ -99,7 +99,7 @@ resource "aws_subnet" "public_subnet_b" {
 
 variable "azs" {
   type    = list(string)
-  default = ["ap-southeast-2a", "ap-southeast-2b"]
+  default = ["ca-central-1a", "ca-central-1b"]
 }
 
 resource "aws_nat_gateway" "nat" {

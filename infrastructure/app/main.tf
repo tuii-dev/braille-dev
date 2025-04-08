@@ -95,7 +95,7 @@ variable "PDF_CO_API_KEY" {
 
 variable "aws_region" {
   type    = string
-  default = "ap-southeast-2"
+  default = "ca-central-1"
 }
 
 

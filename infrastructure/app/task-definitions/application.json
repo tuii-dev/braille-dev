@@ -156,7 +156,7 @@
   },
   {
     "essential": true,
-    "image": "533243300146.dkr.ecr.ap-southeast-2.amazonaws.com/newrelic/logging-firelens-fluentbit",
+    "image": "490004649617.dkr.ecr.ca-central-1.amazonaws.com/newrelic/logging-firelens-fluentbit",
     "name": "log_router",
     "firelensConfiguration": {
       "type": "fluentbit",

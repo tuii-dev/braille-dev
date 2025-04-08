@@ -61,8 +61,8 @@ resource "aws_secretsmanager_secret_version" "worker_env_secret_version" {
     # AWS
     AWS_ACCESS_KEY_ID     = var.AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY = var.AWS_SECRET_ACCESS_KEY
-    AWS_REGION            = "ap-southeast-2"
-    AWS_DEFAULT_REGION    = "ap-southeast-2"
+    AWS_REGION            = "ca-central-1"
+    AWS_DEFAULT_REGION    = "ca-central-1"
     # PDFCO
     PDF_CO_API_ENDPOINT = var.PDF_CO_API_ENDPOINT
     PDF_CO_API_KEY      = var.PDF_CO_API_KEY

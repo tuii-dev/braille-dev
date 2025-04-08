@@ -16,7 +16,7 @@ variable "AWS_SECRET_ACCESS_KEY" {
 
 variable "AWS_DEFAULT_REGION" {
   type    = string
-  default = "ap-southeast-2"
+  default = "ca-central-1"
 }
 
 # LOCALSTACK
