@@ -365,7 +365,13 @@ jobs:
     needs:
       - shared
       # - stg_application
-      - integration
+      # ROLL THIS BACK.  RE-ENABLE integration AND
+      # REMOVE the services.  THIS DONE TO SPEED UP
+      # TESTING
+      # - integration
+      - buildapp
+      - worker
+      - workflow
     outputs:
       DATABASE_URL: ${{ steps.migrate.outputs.DATABASE_URL }}
     environment:
