@@ -1,0 +1,17 @@
+name: Braille-DEV - Destroy
+on:
+  workflow_dispatch:
+jobs:
+  destroy:
+    name: Destroy Infrastructure
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
+      - working-directory: infrastructure/app
+        run: terraform destroy -auto-approve
+      - working-directory: infrastructure/shared
+        run: terraform destroy -auto-approve
