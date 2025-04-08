@@ -384,21 +384,21 @@ jobs:
           TF_TOKEN: ${{ secrets.TF_TOKEN }}
           WORKSPACE: ${{ secrets.WORKSPACE }}
 
-  # prod_dbmigrate:
-  #   name: Prod — Database Migration
-  #   runs-on: ubuntu-24.04
-  #   needs:
-  #     - prod_services
-  #   environment:
-  #     name: Production
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - id: migrate
-  #       uses: ./.github/actions/dbmigrate
-  #       with:
-  #         TF_TOKEN: ${{ secrets.TF_TOKEN }}
-  #         WORKSPACE: ${{ secrets.WORKSPACE }}
-  #         BASTION_PRIVATE_KEY: ${{ secrets.BASTION_PRIVATE_KEY }}
+  prod_dbmigrate:
+    name: Prod — Database Migration
+    runs-on: ubuntu-24.04
+    needs:
+      - prod_services
+    environment:
+      name: Production
+    steps:
+      - uses: actions/checkout@v4
+      - id: migrate
+        uses: ./.github/actions/dbmigrate
+        with:
+          TF_TOKEN: ${{ secrets.TF_TOKEN }}
+          WORKSPACE: ${{ secrets.WORKSPACE }}
+          BASTION_PRIVATE_KEY: ${{ secrets.BASTION_PRIVATE_KEY }}
 
   # prod_application:
   #   name: Prod — Deploy Application
