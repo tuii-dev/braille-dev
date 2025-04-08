@@ -1,15 +1,3 @@
-variable "vpc_id" {
-  type = string
-}
-
-variable "private_route_table_ids" {
-  type = list(string)
-}
-
-variable "aws_region" {
-  type = string
-}
-
 resource "aws_dynamodb_table" "events" {
   name           = "events"
   billing_mode   = "PAY_PER_REQUEST"

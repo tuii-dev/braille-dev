@@ -1,20 +1,3 @@
-variable "username" {
-  type    = string
-  default = "dbmaster"
-}
-
-variable "vpc_id" {
-  type = string
-}
-
-variable "subnet_ids" {
-  type = list(string)
-}
-
-variable "bastion_subnet_id" {
-  type = string
-}
-
 locals {
   DATABASE_URL  = "postgresql://${aws_db_instance.service_db.username}:${data.aws_secretsmanager_secret_version.service_db_password_secret_value.secret_string}@${aws_db_instance.service_db.endpoint}/${aws_db_instance.service_db.db_name}"
   MIGRATION_URL = "postgresql://${aws_db_instance.service_db.username}:${data.aws_secretsmanager_secret_version.service_db_password_secret_value.secret_string}@localhost/${aws_db_instance.service_db.db_name}"
