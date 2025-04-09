@@ -80,7 +80,7 @@ resource "aws_db_instance" "service_db" {
   username                  = var.username
   password                  = data.aws_secretsmanager_secret_version.service_db_password_secret_value.secret_string
   publicly_accessible       = false
-  deletion_protection       = true
+  deletion_protection       = false
   db_subnet_group_name      = aws_db_subnet_group.default.name
 
   depends_on = [
