@@ -152,17 +152,37 @@ jobs:
           if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
             echo "Found ECR repository $REPO_NAME, deleting all images..."
             
-            # Get all image IDs (both tagged and untagged)
-            IMAGE_IDS=$(aws ecr list-images \
+            # Get total number of images
+            TOTAL_IMAGES=$(aws ecr list-images \
               --repository-name "$REPO_NAME" \
-              --query 'imageIds[*]' \
-              --output json)
+              --query 'length(imageIds)' \
+              --output text)
             
-            if [ "$IMAGE_IDS" != "[]" ]; then
-              echo "Deleting images from repository..."
-              aws ecr batch-delete-image \
-                --repository-name "$REPO_NAME" \
-                --image-ids "$IMAGE_IDS"
+            if [ "$TOTAL_IMAGES" -gt 0 ]; then
+              echo "Found $TOTAL_IMAGES images to delete"
+              
+              # Delete images in batches of 100
+              BATCH_SIZE=100
+              OFFSET=0
+              
+              while [ $OFFSET -lt $TOTAL_IMAGES ]; do
+                echo "Deleting batch starting at offset $OFFSET..."
+                
+                # Get next batch of image IDs
+                BATCH_IDS=$(aws ecr list-images \
+                  --repository-name "$REPO_NAME" \
+                  --query "imageIds[${OFFSET}:$(($OFFSET + $BATCH_SIZE - 1))]" \
+                  --output json)
+                
+                # Delete this batch
+                aws ecr batch-delete-image \
+                  --repository-name "$REPO_NAME" \
+                  --image-ids "$BATCH_IDS"
+                
+                OFFSET=$(($OFFSET + $BATCH_SIZE))
+              done
+              
+              echo "Finished deleting all images"
             else
               echo "No images found in repository"
             fi
