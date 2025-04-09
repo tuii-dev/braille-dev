@@ -7,6 +7,10 @@ inputs:
   WORKSPACE:
     required: true
     description: "The Terraform workspace to use"
+  SKIP_CERT_VALIDATION:
+    required: false
+    description: "Skip ACM certificate validation. Set to true for initial deployment to create DNS records."
+    default: "false"
 
 runs:
   using: "composite"
@@ -41,4 +45,10 @@ runs:
       working-directory: infrastructure/services
       shell: bash
       run: |
-        terraform apply -auto-approve
+        if [ "${{ inputs.SKIP_CERT_VALIDATION }}" = "true" ]; then
+          echo "Skipping certificate validation for initial deployment..."
+          terraform apply -auto-approve -var='documents-cf.skip_certificate_validation=true'
+        else
+          echo "Running complete deployment with certificate validation..."
+          terraform apply -auto-approve
+        fi

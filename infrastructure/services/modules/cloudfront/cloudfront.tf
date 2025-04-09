@@ -5,6 +5,10 @@ terraform {
       version               = "~> 5.0"
       configuration_aliases = [aws, aws.apsoutheast2]
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.10.0"
+    }
   }
 }
 
@@ -116,7 +120,14 @@ resource "aws_route53_record" "cert_validation" {
 }
 
 
+variable "skip_certificate_validation" {
+  type        = bool
+  default     = false
+  description = "Skip ACM certificate validation. Set to true for initial deployment to create DNS records."
+}
+
 resource "aws_acm_certificate_validation" "cert" {
+  count                   = var.skip_certificate_validation ? 0 : 1
   certificate_arn         = aws_acm_certificate.cert.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
@@ -150,6 +161,7 @@ resource "aws_cloudfront_key_group" "upload_distribution_cloudfront_key" {
 }
 
 resource "aws_cloudfront_distribution" "uploads_bucket_dist" {
+  depends_on          = [aws_acm_certificate_validation.cert]
   enabled             = true
   http_version        = "http2"
   default_root_object = "index.html"

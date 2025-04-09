@@ -45,6 +45,20 @@ jobs:
         run: terraform validate -no-color
         working-directory: infrastructure/shared
 
+      - name: Initial Terraform Apply (Create DNS Records)
+        id: apply_initial
+        working-directory: infrastructure/services
+        run: terraform apply -auto-approve -var='documents-cf.skip_certificate_validation=true'
+
+      - name: Wait for DNS Propagation
+        run: sleep 60
+        working-directory: infrastructure/services
+
+      - name: Complete Terraform Apply (Validate Certificate)
+        id: apply_complete
+        working-directory: infrastructure/services
+        run: terraform apply -auto-approve
+
       - name: Terraform Apply
         id: apply
         working-directory: infrastructure/shared
@@ -378,7 +392,23 @@ jobs:
       name: Production
     steps:
       - uses: actions/checkout@v4
-      - id: migrate
+      
+      # First apply - create certificate and DNS records
+      - name: Initial Services Deploy
+        id: initial_deploy
+        uses: ./.github/actions/services
+        with:
+          TF_TOKEN: ${{ secrets.TF_TOKEN }}
+          WORKSPACE: ${{ secrets.WORKSPACE }}
+          SKIP_CERT_VALIDATION: "true"
+      
+      # Wait for DNS propagation
+      - name: Wait for DNS Propagation
+        run: sleep 120
+      
+      # Second apply - validate certificate
+      - name: Complete Services Deploy
+        id: migrate
         uses: ./.github/actions/services
         with:
           TF_TOKEN: ${{ secrets.TF_TOKEN }}
