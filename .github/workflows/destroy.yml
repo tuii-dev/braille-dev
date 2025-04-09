@@ -83,17 +83,24 @@ jobs:
       - name: Disable RDS Deletion Protection
         run: |
           # Get the RDS instance ID
-          INSTANCE_ID="${{ github.event.inputs.workspace }}-service"
+          INSTANCE_ID="braille-services-${{ github.event.inputs.workspace }}-service"
           
-          # Disable deletion protection
-          aws rds modify-db-instance \
-            --db-instance-identifier "$INSTANCE_ID" \
-            --no-deletion-protection \
-            --apply-immediately
-          
-          # Wait for the modification to complete
-          aws rds wait db-instance-available \
-            --db-instance-identifier "$INSTANCE_ID"
+          # Check if the RDS instance exists
+          if aws rds describe-db-instances --db-instance-identifier "$INSTANCE_ID" 2>/dev/null; then
+            echo "Found RDS instance $INSTANCE_ID, disabling deletion protection..."
+            
+            # Disable deletion protection
+            aws rds modify-db-instance \
+              --db-instance-identifier "$INSTANCE_ID" \
+              --no-deletion-protection \
+              --apply-immediately
+            
+            # Wait for the modification to complete
+            aws rds wait db-instance-available \
+              --db-instance-identifier "$INSTANCE_ID"
+          else
+            echo "RDS instance $INSTANCE_ID not found, skipping deletion protection disable"
+          fi
         working-directory: infrastructure/services
 
       - name: Terraform Destroy
