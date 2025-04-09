@@ -161,7 +161,7 @@ resource "aws_cloudfront_key_group" "upload_distribution_cloudfront_key" {
 }
 
 resource "aws_cloudfront_distribution" "uploads_bucket_dist" {
-  depends_on          = [aws_acm_certificate_validation.cert]
+  depends_on          = [aws_acm_certificate.cert]
   enabled             = true
   http_version        = "http2"
   default_root_object = "index.html"
@@ -205,7 +205,8 @@ resource "aws_cloudfront_distribution" "uploads_bucket_dist" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.cert.certificate_arn
+    # Always use the certificate ARN directly when validation is skipped
+    acm_certificate_arn      = var.skip_certificate_validation ? aws_acm_certificate.cert.arn : aws_acm_certificate_validation.cert[0].certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.1_2016"
   }

@@ -45,6 +45,11 @@ jobs:
         run: terraform validate -no-color
         working-directory: infrastructure/shared
 
+      - name: Terraform Init Services
+        id: init_services
+        run: terraform init
+        working-directory: infrastructure/services
+
       - name: Initial Terraform Apply (Create DNS Records)
         id: apply_initial
         working-directory: infrastructure/services

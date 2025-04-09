@@ -27,12 +27,6 @@ provider "aws" {
   region = "ca-central-1"
 }
 
-provider "aws" {
-  alias  = "east"
-  region = "us-east-1"
-}
-
-
 data "tfe_outputs" "services" {
   organization = "braille-dev"
   workspace    = replace(terraform.workspace, "application", "services")
