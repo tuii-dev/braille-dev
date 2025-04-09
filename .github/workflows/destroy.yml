@@ -2,16 +2,88 @@ name: Braille-DEV - Destroy
 on:
   workflow_dispatch:
 jobs:
-  destroy:
-    name: Destroy Infrastructure
+  app:
+    name: Destroy Application Infrastructure
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false
           cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
-      - working-directory: infrastructure/app
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+        working-directory: infrastructure/app
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: infrastructure/app
+
+      - name: Terraform Destroy
+        id: destroy
+        working-directory: infrastructure/app
         run: terraform destroy -auto-approve
-      - working-directory: infrastructure/shared
+
+  services:
+    name: Destroy Services Infrastructure
+    runs-on: ubuntu-24.04
+    needs:
+      - app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+        working-directory: infrastructure/services
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: infrastructure/services
+
+      - name: Terraform Destroy
+        id: destroy
+        working-directory: infrastructure/services
+        run: terraform destroy -auto-approve
+
+  shared:
+    name: Destroy Shared Infrastructure
+    runs-on: ubuntu-24.04
+    needs:
+      - app
+      - services
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+        working-directory: infrastructure/shared
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: infrastructure/shared
+
+      - name: Terraform Destroy
+        id: destroy
+        working-directory: infrastructure/shared
         run: terraform destroy -auto-approve
