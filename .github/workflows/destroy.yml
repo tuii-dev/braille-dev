@@ -148,41 +148,49 @@ jobs:
           # Get the ECR repository name
           REPO_NAME="braille-shared-resources_ecr"
           
+          # Function to delete a batch of images
+          delete_batch() {
+            local batch=$1
+            if [ ! -z "$batch" ]; then
+              echo "Deleting batch of images..."
+              aws ecr batch-delete-image \
+                --repository-name "$REPO_NAME" \
+                --image-ids "$batch"
+            fi
+          }
+          
           # List and delete all images
           if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
             echo "Found ECR repository $REPO_NAME, deleting all images..."
             
-            # Get total number of images
-            TOTAL_IMAGES=$(aws ecr list-images \
+            # Get all image IDs
+            ALL_IMAGES=$(aws ecr list-images \
               --repository-name "$REPO_NAME" \
-              --query 'length(imageIds)' \
-              --output text)
+              --query 'imageIds[]' \
+              --output json)
             
-            if [ "$TOTAL_IMAGES" -gt 0 ]; then
-              echo "Found $TOTAL_IMAGES images to delete"
+            # Check if we have any images
+            if [ "$ALL_IMAGES" != "[]" ]; then
+              echo "Found images to delete, processing in batches..."
               
-              # Delete images in batches of 100
-              BATCH_SIZE=100
-              OFFSET=0
-              
-              while [ $OFFSET -lt $TOTAL_IMAGES ]; do
-                echo "Deleting batch starting at offset $OFFSET..."
-                
-                # Get next batch of image IDs
-                BATCH_IDS=$(aws ecr list-images \
-                  --repository-name "$REPO_NAME" \
-                  --query "imageIds[${OFFSET}:$(($OFFSET + $BATCH_SIZE - 1))]" \
-                  --output json)
-                
-                # Delete this batch
-                aws ecr batch-delete-image \
-                  --repository-name "$REPO_NAME" \
-                  --image-ids "$BATCH_IDS"
-                
-                OFFSET=$(($OFFSET + $BATCH_SIZE))
+              # Split into batches of 100 using array indices
+              TOTAL_IMAGES=$(echo "$ALL_IMAGES" | jq length)
+              for ((i=0; i<$TOTAL_IMAGES; i+=100)); do
+                BATCH=$(echo "$ALL_IMAGES" | jq ".[${i}:$(($i + 100))]")
+                delete_batch "$BATCH"
               done
               
-              echo "Finished deleting all images"
+              # Double check all images are gone
+              REMAINING=$(aws ecr list-images \
+                --repository-name "$REPO_NAME" \
+                --query 'length(imageIds)' \
+                --output text)
+              
+              if [ "$REMAINING" -eq 0 ]; then
+                echo "Successfully deleted all images"
+              else
+                echo "Warning: $REMAINING images still remain"
+              fi
             else
               echo "No images found in repository"
             fi

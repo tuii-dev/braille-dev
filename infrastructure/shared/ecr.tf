@@ -1,7 +1,8 @@
 # ECR
 
 resource "aws_ecr_repository" "container_repository" {
-  name = "${terraform.workspace}_ecr"
+  name         = "${terraform.workspace}_ecr"
+  force_delete = true
 
   tags = {
     Environment = "${terraform.workspace}"
