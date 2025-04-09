@@ -143,6 +143,36 @@ jobs:
         run: terraform init
         working-directory: infrastructure/shared
 
+      - name: Delete ECR Images
+        run: |
+          # Get the ECR repository name
+          REPO_NAME="braille-shared-resources_ecr"
+          
+          # List and delete all images
+          if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
+            echo "Found ECR repository $REPO_NAME, deleting all images..."
+            
+            # Get all image digests
+            IMAGE_DIGESTS=$(aws ecr list-images \
+              --repository-name "$REPO_NAME" \
+              --query 'imageIds[*].imageDigest' \
+              --output text)
+            
+            if [ ! -z "$IMAGE_DIGESTS" ]; then
+              echo "Deleting images from repository..."
+              for digest in $IMAGE_DIGESTS; do
+                aws ecr batch-delete-image \
+                  --repository-name "$REPO_NAME" \
+                  --image-ids imageDigest=$digest
+              done
+            else
+              echo "No images found in repository"
+            fi
+          else
+            echo "ECR repository $REPO_NAME not found, skipping image deletion"
+          fi
+        working-directory: infrastructure/shared
+
       - name: Terraform Destroy
         id: destroy
         working-directory: infrastructure/shared
