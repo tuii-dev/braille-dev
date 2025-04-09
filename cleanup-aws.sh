@@ -25,14 +25,14 @@ if [ ! -z "$NAMESPACE_ID" ]; then
 fi
 
 # Route53 Records
-ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name "keeperofthewatchfire.com." --query "HostedZones[0].Id" --output text)
+ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name "keepersofthewatchfire.com." --query "HostedZones[0].Id" --output text)
 if [ ! -z "$ZONE_ID" ]; then
     log "Deleting Route53 CAA record"
     aws route53 change-resource-record-sets --hosted-zone-id "$ZONE_ID" --change-batch '{
         "Changes": [{
             "Action": "DELETE",
             "ResourceRecordSet": {
-                "Name": "keeperofthewatchfire.com.",
+                "Name": "keepersofthewatchfire.com.",
                 "Type": "CAA",
                 "TTL": 300,
                 "ResourceRecords": [
