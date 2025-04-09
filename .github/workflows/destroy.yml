@@ -1,82 +1,119 @@
 name: Braille-DEV - Destroy
 on:
   workflow_dispatch:
+    inputs:
+      workspace:
+        description: 'Terraform workspace to destroy'
+        required: true
+        default: 'production'
+
 jobs:
-  app:
+  destroy_app:
     name: Destroy Application Infrastructure
     runs-on: ubuntu-24.04
+    environment:
+      name: Production
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false
           cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
 
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-        continue-on-error: true
-        working-directory: infrastructure/app
-
       - name: Terraform Init
         id: init
         run: terraform init
         working-directory: infrastructure/app
 
+      - name: Terraform Workspace
+        id: workspace
+        run: terraform workspace select ${{ github.event.inputs.workspace }}
+        working-directory: infrastructure/app
+
       - name: Terraform Destroy
         id: destroy
         working-directory: infrastructure/app
-        run: terraform destroy -auto-approve
+        run: |
+          # Create terraform.auto.tfvars with dummy values since they're required but not used for destroy
+          echo 'application_image="dummy"' >> terraform.auto.tfvars
+          echo 'worker_image="dummy"' >> terraform.auto.tfvars
+          terraform destroy -auto-approve
 
-  services:
+  destroy_services:
     name: Destroy Services Infrastructure
     runs-on: ubuntu-24.04
-    needs:
-      - app
+    needs: destroy_app
+    environment:
+      name: Production
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false
           cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
 
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-        continue-on-error: true
-        working-directory: infrastructure/services
-
       - name: Terraform Init
         id: init
         run: terraform init
         working-directory: infrastructure/services
 
+      - name: Terraform Workspace
+        id: workspace
+        run: terraform workspace select ${{ github.event.inputs.workspace }}
+        working-directory: infrastructure/services
+
       - name: Terraform Destroy
         id: destroy
         working-directory: infrastructure/services
-        run: terraform destroy -auto-approve
+        run: |
+          # Create terraform.auto.tfvars with required values
+          echo 'SIGNING_PRIVATE_KEY="dummy"' >> terraform.auto.tfvars
+          echo 'SIGNING_PUBLIC_KEY="dummy"' >> terraform.auto.tfvars
+          echo 'AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"' >> terraform.auto.tfvars
+          echo 'AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"' >> terraform.auto.tfvars
+          echo 'AWS_DEFAULT_REGION="${{ secrets.AWS_REGION }}"' >> terraform.auto.tfvars
+          echo 'LOCALSTACK=false' >> terraform.auto.tfvars
+          terraform destroy -auto-approve
 
-  shared:
+  destroy_shared:
     name: Destroy Shared Infrastructure
     runs-on: ubuntu-24.04
-    needs:
-      - app
-      - services
+    needs: destroy_services
+    environment:
+      name: Production
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false
           cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
-
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-        continue-on-error: true
-        working-directory: infrastructure/shared
 
       - name: Terraform Init
         id: init
@@ -86,4 +123,9 @@ jobs:
       - name: Terraform Destroy
         id: destroy
         working-directory: infrastructure/shared
-        run: terraform destroy -auto-approve
+        run: |
+          # Create terraform.auto.tfvars with required values
+          echo 'AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"' >> terraform.auto.tfvars
+          echo 'AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"' >> terraform.auto.tfvars
+          echo 'AWS_REGION="${{ secrets.AWS_REGION }}"' >> terraform.auto.tfvars
+          terraform destroy -auto-approve
