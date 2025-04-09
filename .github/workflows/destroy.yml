@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       workspace:
-        description: 'Terraform workspace to destroy'
+        description: "Terraform workspace to destroy"
         required: true
-        default: 'production'
+        default: "dev"
 
 jobs:
   destroy_app:
