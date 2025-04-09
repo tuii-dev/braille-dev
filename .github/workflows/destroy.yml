@@ -152,19 +152,17 @@ jobs:
           if aws ecr describe-repositories --repository-names "$REPO_NAME" 2>/dev/null; then
             echo "Found ECR repository $REPO_NAME, deleting all images..."
             
-            # Get all image digests
-            IMAGE_DIGESTS=$(aws ecr list-images \
+            # Get all image IDs (both tagged and untagged)
+            IMAGE_IDS=$(aws ecr list-images \
               --repository-name "$REPO_NAME" \
-              --query 'imageIds[*].imageDigest' \
-              --output text)
+              --query 'imageIds[*]' \
+              --output json)
             
-            if [ ! -z "$IMAGE_DIGESTS" ]; then
+            if [ "$IMAGE_IDS" != "[]" ]; then
               echo "Deleting images from repository..."
-              for digest in $IMAGE_DIGESTS; do
-                aws ecr batch-delete-image \
-                  --repository-name "$REPO_NAME" \
-                  --image-ids imageDigest=$digest
-              done
+              aws ecr batch-delete-image \
+                --repository-name "$REPO_NAME" \
+                --image-ids "$IMAGE_IDS"
             else
               echo "No images found in repository"
             fi
