@@ -23,6 +23,11 @@ provider "aws" {
   region = "ca-central-1"
 }
 
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 
 module "database" {
   source = "./modules/database"
@@ -89,8 +94,8 @@ output "REDIS_HOST" {
 module "documents-cf" {
   source = "./modules/cloudfront"
   providers = {
-    aws              = aws
-    aws.apsoutheast2 = aws
+    aws.us_east_1     = aws.us_east_1
+    aws.apsoutheast2  = aws
   }
 
   count   = var.LOCALSTACK ? 0 : 1

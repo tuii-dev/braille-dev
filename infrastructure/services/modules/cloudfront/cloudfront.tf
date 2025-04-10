@@ -3,7 +3,7 @@ terraform {
     aws = {
       source                = "hashicorp/aws"
       version               = "~> 5.0"
-      configuration_aliases = [aws, aws.apsoutheast2]
+      configuration_aliases = [aws.us_east_1, aws.apsoutheast2]
     }
     time = {
       source  = "hashicorp/time"
@@ -83,10 +83,7 @@ resource "aws_s3_bucket_policy" "cloudfront_documents_access_policy" {
   policy   = data.aws_iam_policy_document.cloudfront_documents_access_policy.json
   provider = aws.apsoutheast2
 }
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
-}
+
 
 resource "aws_acm_certificate" "cert" {
   provider                  = aws.us_east_1
