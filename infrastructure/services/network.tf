@@ -125,9 +125,9 @@ resource "aws_route" "private" {
 }
 
 resource "aws_subnet" "private_subnet" {
-  vpc_id     = aws_vpc.vpc.id
-  count      = length(var.azs)
-  cidr_block = cidrsubnet(var.private_subnet_cidr, 2, count.index * 2)
+  vpc_id            = aws_vpc.vpc.id
+  count             = length(var.azs)
+  cidr_block        = cidrsubnet(var.private_subnet_cidr, 2, count.index * 2)
   availability_zone = element(var.azs, count.index)
 
   tags = {

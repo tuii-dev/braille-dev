@@ -89,11 +89,11 @@ provider "aws" {
 }
 
 resource "aws_acm_certificate" "cert" {
-  provider                = aws.us_east_1
-  depends_on              = [var.caa]
-  domain_name             = var.APP_DOMAIN
+  provider                  = aws.us_east_1
+  depends_on                = [var.caa]
+  domain_name               = var.APP_DOMAIN
   subject_alternative_names = ["*.${var.APP_DOMAIN}"]
-  validation_method       = "DNS"
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true
@@ -130,15 +130,15 @@ variable "skip_certificate_validation" {
 }
 
 resource "aws_acm_certificate_validation" "cert" {
-  provider              = aws.us_east_1
-  count                 = var.skip_certificate_validation ? 0 : 1
-  certificate_arn       = aws_acm_certificate.cert.arn
+  provider                = aws.us_east_1
+  count                   = var.skip_certificate_validation ? 0 : 1
+  certificate_arn         = aws_acm_certificate.cert.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
 resource "aws_secretsmanager_secret" "signing_private_key" {
-  name        = "${terraform.workspace}--signing-private-key"
-  description = "Private key for CloudFront trusted keygroup"
+  name                    = "${terraform.workspace}--signing-private-key"
+  description             = "Private key for CloudFront trusted keygroup"
   recovery_window_in_days = 0
 }
 

@@ -1,8 +1,8 @@
 resource "aws_dynamodb_table" "events" {
-  name           = "events"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "streamId"
-  range_key      = "version"
+  name         = "events"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "streamId"
+  range_key    = "version"
 
 
   attribute {
@@ -31,25 +31,25 @@ resource "aws_dynamodb_table" "events" {
   }
 
   global_secondary_index {
-    name               = "eventIdIndex"
-    hash_key           = "eventDate"
-    range_key          = "eventId"
-    projection_type    = "ALL"
+    name            = "eventIdIndex"
+    hash_key        = "eventDate"
+    range_key       = "eventId"
+    projection_type = "ALL"
   }
 
   global_secondary_index {
-    name               = "aggregate_id_index"
-    hash_key           = "aggregateId"
-    range_key      = "version"
-    projection_type    = "ALL"
+    name            = "aggregate_id_index"
+    hash_key        = "aggregateId"
+    range_key       = "version"
+    projection_type = "ALL"
   }
 }
 
 resource "aws_dynamodb_table" "snapshots" {
-  name           = "snapshots"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "streamId"
-  range_key      = "version"
+  name         = "snapshots"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "streamId"
+  range_key    = "version"
 
   attribute {
     name = "streamId"
@@ -77,23 +77,23 @@ resource "aws_dynamodb_table" "snapshots" {
   }
 
   global_secondary_index {
-    name               = "aggregate_index"
-    hash_key           = "aggregateName"
-    range_key          = "latest"
-    projection_type    = "ALL"
+    name            = "aggregate_index"
+    hash_key        = "aggregateName"
+    range_key       = "latest"
+    projection_type = "ALL"
   }
 
   global_secondary_index {
-    name               = "aggregate_id_index"
-    hash_key           = "aggregateId"
-    range_key      = "version"
-    projection_type    = "ALL"
+    name            = "aggregate_id_index"
+    hash_key        = "aggregateId"
+    range_key       = "version"
+    projection_type = "ALL"
   }
 }
 
 resource "aws_vpc_endpoint" "dynamodb" {
-  vpc_id       = var.vpc_id
-  service_name = "com.amazonaws.${var.aws_region}.dynamodb"
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = var.private_route_table_ids

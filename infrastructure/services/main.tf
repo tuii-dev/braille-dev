@@ -35,9 +35,9 @@ module "database" {
     aws_subnet.private_subnet[0].id,
     aws_subnet.private_subnet[1].id,
   ]
-  
+
   # dynamo stuff
-  aws_region = var.aws_region
+  aws_region              = var.aws_region
   private_route_table_ids = [aws_route_table.private[0].id]
 }
 
@@ -69,7 +69,7 @@ output "MIGRATION_URL" {
 }
 
 output "BASTION_IP" {
-  value     = length(module.database) > 0 ? module.database[0].BASTION_IP : null
+  value = length(module.database) > 0 ? module.database[0].BASTION_IP : null
 }
 
 

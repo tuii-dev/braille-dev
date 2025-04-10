@@ -1,7 +1,7 @@
 terraform {
   backend "remote" {
     organization = "braille-dev"
-  
+
     workspaces {
       name = "braille-shared-resources"
     }

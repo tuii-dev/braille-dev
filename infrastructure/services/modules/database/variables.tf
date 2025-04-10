@@ -1,18 +1,18 @@
 variable "username" {
-    type    = string
-    default = "dbmaster"
+  type    = string
+  default = "dbmaster"
 }
 
 variable "vpc_id" {
-    type = string
+  type = string
 }
 
 variable "subnet_ids" {
-    type = list(string)
+  type = list(string)
 }
 
 variable "bastion_subnet_id" {
-    type = string
+  type = string
 }
 
 variable "private_route_table_ids" {
