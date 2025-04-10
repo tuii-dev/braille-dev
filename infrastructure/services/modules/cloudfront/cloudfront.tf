@@ -83,42 +83,21 @@ resource "aws_s3_bucket_policy" "cloudfront_documents_access_policy" {
   policy   = data.aws_iam_policy_document.cloudfront_documents_access_policy.json
   provider = aws.apsoutheast2
 }
-# Add at the top of infrastructure/services/modules/cloudfront/cloudfront.tf
 provider "aws" {
   alias  = "us_east_1"
   region = "us-east-1"
 }
 
-# Modify the certificate resource to use the us-east-1 provider
 resource "aws_acm_certificate" "cert" {
-  provider = aws.us_east_1  # Add this line
-  depends_on                = [var.caa]
-  domain_name               = var.APP_DOMAIN
+  provider                = aws.us_east_1
+  depends_on              = [var.caa]
+  domain_name             = var.APP_DOMAIN
   subject_alternative_names = ["*.${var.APP_DOMAIN}"]
-  validation_method         = "DNS"
+  validation_method       = "DNS"
 
   lifecycle {
     create_before_destroy = true
   }
-}
-
-# Also update the validation resource
-resource "aws_acm_certificate_validation" "cert" {
-  provider = aws.us_east_1  # Add this line
-  certificate_arn         = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-  count                  = var.skip_certificate_validation ? 0 : 1
-}
-resource "aws_acm_certificate" "cert" {
-  depends_on                = [var.caa]
-  domain_name               = var.APP_DOMAIN
-  subject_alternative_names = ["*.${var.APP_DOMAIN}"]
-  validation_method         = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
 }
 
 locals {
@@ -144,7 +123,6 @@ resource "aws_route53_record" "cert_validation" {
   zone_id         = var.zone_id
 }
 
-
 variable "skip_certificate_validation" {
   type        = bool
   default     = false
@@ -152,8 +130,9 @@ variable "skip_certificate_validation" {
 }
 
 resource "aws_acm_certificate_validation" "cert" {
-  count                   = var.skip_certificate_validation ? 0 : 1
-  certificate_arn         = aws_acm_certificate.cert.arn
+  provider              = aws.us_east_1
+  count                 = var.skip_certificate_validation ? 0 : 1
+  certificate_arn       = aws_acm_certificate.cert.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
