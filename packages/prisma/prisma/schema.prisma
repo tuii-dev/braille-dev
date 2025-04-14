@@ -565,3 +565,166 @@ model UserPreferences {
 
   @@index([lastUsedWorkspaceId])
 }
+
+// New Workflow Stuff
+
+// Define models here
+// model AppScheduledJobRegistration {
+//   id       String @id
+//   tenantId String
+//   appId    String
+
+//   name         String
+//   type         String
+//   cronSchedule String
+//   metadata     String
+//   isActive     Boolean
+//   isDeleted    Boolean
+//   isPaused     Boolean
+//   created      String?
+//   updated      String?
+//   deleted      String?
+//   app          App     @relation(fields: [appId], references: [id])
+//   tenant       Tenant  @relation(fields: [tenantId], references: [id])
+// }
+
+// model Tenant {
+//   id                          String                        @id
+//   name                        String?
+//   address                     String?
+//   city                        String?
+//   state                       String?
+//   country                     String?
+//   postalCode                  String?
+//   contactPerson               String?
+//   phoneNumber                 String?
+//   email                       String?
+//   created                     String?
+//   updated                     String?
+//   operations                  Int?
+//   AppScheduledJobRegistration AppScheduledJobRegistration[]
+//   App                         App[]
+// }
+
+// model App {
+//   id          String  @id
+//   tenantId    String
+//   name        String?
+//   description String?
+//   created     String?
+//   updated     String?
+
+//   tenant                      Tenant                        @relation(fields: [tenantId], references: [id])
+//   AppScheduledJobRegistration AppScheduledJobRegistration[]
+// }
+
+model WorkflowTemplate {
+  templateId             String         @id @unique
+  tenantId               String?
+  workspaceId            String?
+  appId                  String?
+  name                   String?
+  description            String?
+  inputSchemaDependency  String?
+  outputSchemaDependency String?
+  outputResolvers        Json?
+  created                DateTime?
+  updated                DateTime?
+  deleted                Boolean?
+  deletedAt              DateTime?
+  steps                  WorkflowStep[] // One-to-many relationship with WorkflowExecutionStep
+
+  @@index([tenantId])
+  @@index([workspaceId])
+  @@index([appId])
+}
+
+model WorkflowStep {
+  templateId             String
+  nodeId                 String
+  type                   String // Type of the step (e.g., ACTION)
+  tenantId               String?
+  name                   String?
+  description            String?
+  actionType             String?
+  controlType            String?
+  sandboxedJsCode        String?
+  edges                  String[]
+  failActionType         String?
+  inputResolvers         Json?
+  inputSchemaDependency  String?
+  outputSchemaDependency String?
+  stepFailureType        String?
+
+  WorkflowTemplate WorkflowTemplate? @relation(fields: [templateId], references: [templateId])
+
+  @@id([templateId, nodeId]) // Composite primary key
+}
+
+model WorkflowExecution {
+  executionId                   String    @id @unique
+  tenantId                      String?
+  templateId                    String?
+  workspaceId                   String?
+  appId                         String?
+  startDate                     DateTime?
+  endDate                       DateTime?
+  name                          String?
+  description                   String?
+  status                        String?
+  parentWorkflowExecutionId     String?
+  parentWorkflowExecutionNodeId String?
+  callbackUrl                   String?
+  inputSchemaDependency         String?
+  outputSchemaDependency        String?
+  inputs                        Json?
+  outputs                       Json?
+  runtimeState                  Json?
+  outputResolvers               Json?
+  failedNodeIds                 String[]
+  failureMessage                String?
+  isRoot                        Boolean
+  operationsConsumed            Int?
+
+  steps WorkflowExecutionStep[] // One-to-many relationship with WorkflowExecutionStep
+
+  @@index([tenantId])
+  @@index([templateId])
+  @@index([workspaceId])
+  @@index([appId])
+}
+
+model WorkflowExecutionStep {
+  executionId                   String // Foreign key to WorkflowExecution
+  nodeId                        String
+  type                          String // Type of the step (e.g., ACTION)
+  tenantId                      String?
+  templateId                    String?
+  startDate                     DateTime?
+  endDate                       DateTime?
+  name                          String?
+  description                   String?
+  status                        String? // Status of the step (e.g., COMPLETED)
+  actionType                    String?
+  childWorkflowTemplateId       String?
+  childWorkflowExecutionId      String?
+  parentWorkflowExecutionId     String?
+  parentWorkflowExecutionNodeId String?
+  controlType                   String?
+  sandboxedJsCode               String?
+  edges                         String[]
+  failActionType                String?
+  inputResolvers                Json?
+  inputSchemaDependency         String?
+  outputSchemaDependency        String?
+  inputs                        Json?
+  outputs                       Json?
+  stepFailureType               String?
+  failureMessage                String?
+  operationsConsumed            Int?
+
+  workflowExecution WorkflowExecution @relation(fields: [executionId], references: [executionId])
+
+  @@id([executionId, nodeId]) // Composite primary key
+  @@index([templateId])
+}

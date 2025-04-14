@@ -67,43 +67,39 @@ import { AppScheduledJob } from '@app/common/shared/event-sourcing/domain/models
         },
       }),
     }),
-    LoggerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        pinoHttp: {
-          transport: {
-            targets: [
-              {
-                target: 'pino-pretty',
-                level: 'info',
-                options: {
-                  colorize: true,
-                  singleLine: true,
-                },
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          targets: [
+            {
+              target: 'pino-pretty',
+              level: 'info',
+              options: {
+                colorize: true,
+                singleLine: true,
               },
-              // {
-              //   target: 'pino/file',
-              //   level: 'info',
-              //   options: {
-              //     destination: './logs/scheduler.log',
-              //     mkdir: true,
-              //   },
-              // },
-              // {
-              //   target: 'pino-mongodb',
-              //   level: 'info', // Set log level (e.g., 'info', 'error')
-              //   options: {
-              //     uri: configService.get<string>('MONGODB_URI'), // MongoDB connection URI
-              //     database: 'logs', // Database name
-              //     collection: 'scheduler', // Collection name for logs
-              //   },
-              // },
-            ],
-          },
-          name: 'scheduler',
+            },
+            // {
+            //   target: 'pino/file',
+            //   level: 'info',
+            //   options: {
+            //     destination: './logs/scheduler.log',
+            //     mkdir: true,
+            //   },
+            // },
+            // {
+            //   target: 'pino-mongodb',
+            //   level: 'info', // Set log level (e.g., 'info', 'error')
+            //   options: {
+            //     uri: configService.get<string>('MONGODB_URI'), // MongoDB connection URI
+            //     database: 'logs', // Database name
+            //     collection: 'scheduler', // Collection name for logs
+            //   },
+            // },
+          ],
         },
-      }),
+        name: 'scheduler',
+      },
     }),
     ClientsModule.registerAsync([
       {

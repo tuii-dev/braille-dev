@@ -1,3 +1,4 @@
+import './tracing';
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
@@ -43,6 +44,6 @@ async function bootstrap() {
 
   // Start both the HTTP server and the Redis microservice
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 9001);
 }
 void bootstrap();

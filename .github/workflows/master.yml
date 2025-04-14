@@ -292,50 +292,50 @@ jobs:
   #         WORKSPACE: ${{ secrets.WORKSPACE }}
   #############################################
 
-  # integration:
-  #   name: Playwright Integration Tests
-  #   timeout-minutes: 60
-  #   runs-on: ubuntu-24.04
-  #   needs:
-  #     - shared
-  #     - buildapp
-  #     - worker
-  #     - workflow
+  integration:
+    name: Playwright Integration Tests
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    needs:
+      - shared
+      - buildapp
+      - worker
+      - workflow
 
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Download Terraform outputs
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: tf-outputs
-  #         path: ./tf-outputs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: tf-outputs
+          path: ./tf-outputs
 
-  #     - name: Load outputs into environment
-  #       run: |
-  #         mkdir -p ./tf-outputs
-  #         ECR_URL=$(cat ./tf-outputs/ecr_url)
-  #         CI_KEY_ID=$(cat ./tf-outputs/ci_key_id)
-  #         CI_KEY_SECRET=$(cat ./tf-outputs/ci_key_secret)
+      - name: Load outputs into environment
+        run: |
+          mkdir -p ./tf-outputs
+          ECR_URL=$(cat ./tf-outputs/ecr_url)
+          CI_KEY_ID=$(cat ./tf-outputs/ci_key_id)
+          CI_KEY_SECRET=$(cat ./tf-outputs/ci_key_secret)
 
-  #         echo "=== Checking outputs ==="
-  #         echo "ECR URL is present: $([ ! -z "$ECR_URL" ] && echo 'true' || echo 'false')"
-  #         echo "Full Image Tag will be: ${ECR_URL}:application_${{ github.sha }}"
-  #         echo "AWS credentials are present: $([ ! -z "$CI_KEY_ID" ] && [ ! -z "$CI_KEY_SECRET" ] && echo 'true' || echo 'false')"
-  #         echo "==========================="
+          echo "=== Checking outputs ==="
+          echo "ECR URL is present: $([ ! -z "$ECR_URL" ] && echo 'true' || echo 'false')"
+          echo "Full Image Tag will be: ${ECR_URL}:application_${{ github.sha }}"
+          echo "AWS credentials are present: $([ ! -z "$CI_KEY_ID" ] && [ ! -z "$CI_KEY_SECRET" ] && echo 'true' || echo 'false')"
+          echo "==========================="
 
-  #         # Export for subsequent steps
-  #         echo "ECR_URL=$ECR_URL" >> "$GITHUB_ENV"
-  #         echo "CI_KEY_ID=$CI_KEY_ID" >> "$GITHUB_ENV"
-  #         echo "CI_KEY_SECRET=$CI_KEY_SECRET" >> "$GITHUB_ENV"
+          # Export for subsequent steps
+          echo "ECR_URL=$ECR_URL" >> "$GITHUB_ENV"
+          echo "CI_KEY_ID=$CI_KEY_ID" >> "$GITHUB_ENV"
+          echo "CI_KEY_SECRET=$CI_KEY_SECRET" >> "$GITHUB_ENV"
 
-  #     - id: integration
-  #       uses: ./.github/actions/integration
-  #       with:
-  #         AWS_ACCESS_KEY_ID: ${{ env.CI_KEY_ID }}
-  #         AWS_SECRET_ACCESS_KEY: ${{ env.CI_KEY_SECRET }}
-  #         APP_IMAGE_TAG: ${{ env.ECR_URL }}:application_${{ github.sha }}
-  #         WORKER_IMAGE_TAG: ${{ env.ECR_URL }}:worker_${{ github.sha }}
-  #         WORKFLOW_IMAGE_TAG: ${{ env.ECR_URL }}:workflow_${{ github.sha }}
+      - id: integration
+        uses: ./.github/actions/integration
+        with:
+          AWS_ACCESS_KEY_ID: ${{ env.CI_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.CI_KEY_SECRET }}
+          APP_IMAGE_TAG: ${{ env.ECR_URL }}:application_${{ github.sha }}
+          WORKER_IMAGE_TAG: ${{ env.ECR_URL }}:worker_${{ github.sha }}
+          WORKFLOW_IMAGE_TAG: ${{ env.ECR_URL }}:workflow_${{ github.sha }}
 
   #############################################
   # dbmigrate:
@@ -387,17 +387,17 @@ jobs:
       # ROLL THIS BACK.  RE-ENABLE integration AND
       # REMOVE the services.  THIS DONE TO SPEED UP
       # TESTING
-      # - integration
-      - buildapp
-      - worker
-      - workflow
+      - integration
+      # - buildapp
+      # - worker
+      # - workflow
     outputs:
       DATABASE_URL: ${{ steps.migrate.outputs.DATABASE_URL }}
     environment:
       name: Production
     steps:
       - uses: actions/checkout@v4
-      
+
       # First apply - create certificate and DNS records
       - name: Initial Services Deploy
         id: initial_deploy
@@ -406,11 +406,11 @@ jobs:
           TF_TOKEN: ${{ secrets.TF_TOKEN }}
           WORKSPACE: ${{ secrets.WORKSPACE }}
           SKIP_CERT_VALIDATION: "true"
-      
+
       # Wait for DNS propagation
       - name: Wait for DNS Propagation
         run: sleep 120
-      
+
       # Second apply - validate certificate
       - name: Complete Services Deploy
         id: migrate
@@ -440,7 +440,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - shared
-      # - integration
+      - integration
       - prod_services
       - prod_dbmigrate
 

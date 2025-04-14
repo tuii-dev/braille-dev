@@ -88,20 +88,8 @@
         "valueFrom": "${ENV_SECRET}:AWS_REGION::"
       },
       {
-        "name": "PDF_CO_API_ENDPOINT",
-        "valueFrom": "${ENV_SECRET}:PDF_CO_API_ENDPOINT::"
-      },
-      {
-        "name": "PDF_CO_API_KEY",
-        "valueFrom": "${ENV_SECRET}:PDF_CO_API_KEY::"
-      },
-      {
         "name": "POSTGRES_PRISMA_URL",
         "valueFrom": "${ENV_SECRET}:POSTGRES_PRISMA_URL::"
-      },
-      {
-        "name": "S3_UPLOAD_BUCKET",
-        "valueFrom": "${ENV_SECRET}:S3_UPLOAD_BUCKET::"
       },
       {
         "name": "PDFCO_JOB_TOPIC_ARN",

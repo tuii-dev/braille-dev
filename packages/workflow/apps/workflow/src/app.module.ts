@@ -70,43 +70,39 @@ import {
         },
       }),
     }),
-    LoggerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        pinoHttp: {
-          transport: {
-            targets: [
-              {
-                target: 'pino-pretty',
-                level: 'info',
-                options: {
-                  colorize: true,
-                  singleLine: true,
-                },
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          targets: [
+            {
+              target: 'pino-pretty',
+              level: 'info',
+              options: {
+                colorize: true,
+                singleLine: true,
               },
-              // {
-              //   target: 'pino/file',
-              //   level: 'info',
-              //   options: {
-              //     destination: './logs/workflows.log',
-              //     mkdir: true,
-              //   },
-              // },
-              // {
-              //   target: 'pino-mongodb',
-              //   level: 'info', // Set log level (e.g., 'info', 'error')
-              //   options: {
-              //     uri: configService.get<string>('MONGODB_URI'), // MongoDB connection URI
-              //     database: 'logs', // Database name
-              //     collection: 'workflows', // Collection name for logs
-              //   },
-              // },
-            ],
-          },
-          name: 'workflows',
+            },
+            // {
+            //   target: 'pino/file',
+            //   level: 'info',
+            //   options: {
+            //     destination: './logs/workflows.log',
+            //     mkdir: true,
+            //   },
+            // },
+            // {
+            //   target: 'pino-mongodb',
+            //   level: 'info', // Set log level (e.g., 'info', 'error')
+            //   options: {
+            //     uri: 'mongodb://localhost:27017', // MongoDB connection URI
+            //     database: 'logs', // Database name
+            //     collection: 'workflows', // Collection name for logs
+            //   },
+            // },
+          ],
         },
-      }),
+        name: 'workflows',
+      },
     }),
     ClientsModule.registerAsync([
       {
@@ -116,9 +112,10 @@ import {
           transport: Transport.REDIS,
           options: {
             host: configService.get<string>('REDIS_HOST'), // Dynamically get host
-            port: configService.get<number>('REDIS_PORT'), // Dynamically get port
-            retryAttempts: configService.get<number>('REDIS_RETRY_ATTEMPTS'), // Dynamically get retry attempts
-            retryDelay: configService.get<number>('REDIS_RETRY_DELAY'), // Dynamically get retry delay
+            port: configService.get<number>('REDIS_PORT') ?? 6379, // Dynamically get port
+            retryAttempts:
+              configService.get<number>('REDIS_RETRY_ATTEMPTS') ?? 5, // Dynamically get retry attempts
+            retryDelay: configService.get<number>('REDIS_RETRY_DELAY') ?? 1000, // Dynamically get retry delay
           },
         }),
         inject: [ConfigService], // Inject ConfigService into the factory

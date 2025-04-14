@@ -167,6 +167,7 @@ import {
 } from '@app/common/services';
 
 import { WorkflowExecutionSnapshotRepository } from './domain/models/workflow-executions/workflow-execution.snapshot-repository';
+import { HealthCheckController } from './application/controllers/health-check.controller';
 
 export const CommandHandlers: Type<ICommandHandler>[] = [
   // Workflow Templates
@@ -307,6 +308,7 @@ export const Controllers = [
   AppScheduledJobController,
   AppScheduledJobRegistrationController,
   AppScheduledJobEventBridgeController,
+  HealthCheckController,
 ];
 
 export const Services = [
