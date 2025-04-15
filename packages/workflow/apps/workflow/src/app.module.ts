@@ -82,23 +82,6 @@ import {
                 singleLine: true,
               },
             },
-            // {
-            //   target: 'pino/file',
-            //   level: 'info',
-            //   options: {
-            //     destination: './logs/workflows.log',
-            //     mkdir: true,
-            //   },
-            // },
-            // {
-            //   target: 'pino-mongodb',
-            //   level: 'info', // Set log level (e.g., 'info', 'error')
-            //   options: {
-            //     uri: 'mongodb://localhost:27017', // MongoDB connection URI
-            //     database: 'logs', // Database name
-            //     collection: 'workflows', // Collection name for logs
-            //   },
-            // },
           ],
         },
         name: 'workflows',

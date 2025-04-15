@@ -124,10 +124,10 @@ import { AppScheduledJob } from '@app/common/shared/event-sourcing/domain/models
           name: 'SQS_CLIENT',
           region: configService.get('AWS_REGION'),
           consumers: [
-            {
-              name: 'JOB1_QUEUE_CONSUMER',
-              queueUrl: configService.get('AWS_JOB1_QUEUE_URL')!,
-            },
+            // {
+            //   name: 'JOB1_QUEUE_CONSUMER',
+            //   queueUrl: configService.get('AWS_JOB1_QUEUE_URL')!,
+            // },
           ],
           // producers: [
           //   {
