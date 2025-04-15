@@ -40,9 +40,11 @@ import {
   App,
   Workspace,
 } from '@app/common/shared/event-sourcing/domain/models';
+import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs';
 
 @Module({
   imports: [
+    OpenTelemetryModule.forRoot(),
     EventEmitterModule.forRoot(),
     EventSourcingModule.forRootAsync<
       DynamoDBEventStoreConfig,

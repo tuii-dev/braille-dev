@@ -4,8 +4,8 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
+  await import('./tracing');
   const configService = new ConfigService();
-
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     SchedulerModule,
     {

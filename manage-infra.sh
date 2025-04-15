@@ -19,6 +19,7 @@ function usage() {
     echo "  -t, --tf-token TOKEN         Terraform Cloud token"
     echo "  -a, --app-image IMAGE        Application Docker image tag"
     echo "  -k, --worker-image IMAGE     Worker Docker image tag"
+    echo "  -f, --workflow-image IMAGE   Workflow Docker image tag"
     echo "  -h, --help                   Show this help message"
     exit 1
 }
@@ -50,6 +51,10 @@ while [[ $# -gt 0 ]]; do
             WORKER_IMAGE="$2"
             shift 2
             ;;
+        -f|--workflow-image)
+            WORKFLOW_IMAGE="$2"
+            shift 2
+            ;;
         -h|--help)
             usage
             ;;
@@ -78,6 +83,10 @@ if [ "$COMMAND" = "deploy" ]; then
     fi
     if [ -z "$WORKER_IMAGE" ]; then
         echo "Error: Worker image (-k, --worker-image) is required for deployment"
+        usage
+    fi
+    if [ -z "$WORKFLOW_IMAGE" ]; then
+        echo "Error: Workflow image (-f, --workflow-image) is required for deployment"
         usage
     fi
 fi
@@ -172,6 +181,9 @@ function create_tfvars() {
             fi
             if [ ! -z "$WORKER_IMAGE" ]; then
                 echo "worker_image = \"$WORKER_IMAGE\"" >> "$tfvars_file"
+            fi
+            if [ ! -z "$WORKFLOW_IMAGE" ]; then
+                echo "workflow_image = \"$WORKFLOW_IMAGE\"" >> "$tfvars_file"
             fi
             ;;
     esac

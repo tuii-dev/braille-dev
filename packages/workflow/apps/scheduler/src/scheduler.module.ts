@@ -36,9 +36,11 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppScheduledJob } from '@app/common/shared/event-sourcing/domain/models/app-scheduled-job/app-scheduled-job.aggregate';
+import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs';
 
 @Module({
   imports: [
+    OpenTelemetryModule.forRoot(),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     EventSourcingModule.forRootAsync<

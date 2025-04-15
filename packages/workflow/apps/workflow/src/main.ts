@@ -1,4 +1,3 @@
-import './tracing';
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
@@ -8,6 +7,7 @@ import { Logger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
+  await import('./tracing');
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   // This gets the underlying HTTP adapter (e.g. Express) and assigns it to the DomainExceptionsFilter.
   // This allows the filter to use the HTTP adapter to determine the response to send when an exception is caught.
