@@ -37,7 +37,7 @@ RUN yarn turbo run build --filter=@jptr/braille-workflow...
 
 # RUNNER
 FROM base AS runner
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat wget
 RUN apk update
 # RUN apk add --no-cache bash inotify-tools imagemagick graphicsmagick ghostscript
 WORKDIR /app

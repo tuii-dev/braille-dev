@@ -44,6 +44,6 @@ async function bootstrap() {
 
   // Start both the HTTP server and the Redis microservice
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 9001);
+  await app.listen(9001);
 }
 void bootstrap();

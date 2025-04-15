@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Controller, Get, Header, HttpCode } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { InjectPinoLogger } from 'nestjs-pino';
 import { PinoLogger } from 'nestjs-pino';
 
@@ -11,8 +11,6 @@ export class HealthCheckController {
   ) {}
 
   @Get()
-  @HttpCode(200)
-  @Header('Content-Type', 'text/plain')
   async healthcheck() {
     return 'OK';
   }
