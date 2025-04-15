@@ -45,6 +45,6 @@ ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
 
-EXPOSE 3000
+EXPOSE 9001
 WORKDIR /app/packages/workflow
 CMD LANGCHAIN_CALLBACKS_BACKGROUND=true yarn start:prod
