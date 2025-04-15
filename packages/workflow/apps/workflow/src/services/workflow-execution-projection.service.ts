@@ -374,10 +374,7 @@ export class WorkflowExecutionProjectionService {
     this.logger.info(
       `Updating step start projection for workflow execution with delay ${event.executionId} ${event.nodeId}`,
     );
-    const timeout =
-      (this.configService.get(
-        'PROJECTION_WORKFLOW_START_SYNC_DELAY',
-      ) as number) ?? 2500;
+    const timeout = 2500;
     this.logger.info(`Timeout set to ${timeout}ms`);
 
     await setTimeout(timeout);

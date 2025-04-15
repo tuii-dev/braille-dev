@@ -8,11 +8,11 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { CommandBus } from '@ocoda/event-sourcing';
 import { Message } from '@aws-sdk/client-sqs';
 import { Injectable } from '@nestjs/common';
-import {
-  // SqsConsumerEventHandler,
-  SqsMessageHandler,
-  // SqsService,
-} from '@ssut/nestjs-sqs';
+// import {
+//   // SqsConsumerEventHandler,
+//   // SqsMessageHandler,
+//   // SqsService,
+// } from '@ssut/nestjs-sqs';
 import { CronJob } from 'cron';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { SqsClientService } from '@app/common/services/sqs-client.service';
@@ -31,7 +31,7 @@ export class SchedulerService {
     private readonly logger: PinoLogger,
   ) {}
 
-  @SqsMessageHandler('JOB1_QUEUE_CONSUMER', false)
+  // @SqsMessageHandler('JOB1_QUEUE_CONSUMER', false)
   public async handleSqsMessage(message: Message) {
     this.logger.info(`Received message: ${JSON.stringify(message)}`);
     this.logger.info(`Message ID: ${message.MessageId}`);

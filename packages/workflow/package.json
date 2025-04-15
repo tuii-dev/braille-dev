@@ -11,6 +11,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "pm2 start process.json",
     "logs:prod": "pm2 logs",
+    "logs:delete": "pm2 flush",
     "logs:workflow:prod": "pm2 logs workflow",
     "logs:scheduler:prod": "pm2 logs scheduler",
     "stop:prod": "pm2 stop process.json",

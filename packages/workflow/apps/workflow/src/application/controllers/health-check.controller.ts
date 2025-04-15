@@ -1,7 +1,7 @@
-import { Controller, Get, Header } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/require-await */
+import { Controller, Get, Header, HttpCode } from '@nestjs/common';
 import { InjectPinoLogger } from 'nestjs-pino';
 import { PinoLogger } from 'nestjs-pino';
-import { HealthCheckDto } from '../dtos/common/health-check.dto';
 
 @Controller('healthcheck')
 export class HealthCheckController {
@@ -11,11 +11,9 @@ export class HealthCheckController {
   ) {}
 
   @Get()
-  @Header('Content-Type', 'application/json')
-  healthCheck(): HealthCheckDto {
-    return {
-      status: 'ok',
-      timestamp: new Date().getTime(),
-    } as HealthCheckDto;
+  @HttpCode(200)
+  @Header('Content-Type', 'text/plain')
+  async healthcheck() {
+    return 'OK';
   }
 }

@@ -111,9 +111,9 @@ import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs';
           transport: Transport.REDIS,
           options: {
             host: configService.get<string>('REDIS_HOST'), // Dynamically get host
-            port: configService.get<number>('REDIS_PORT'), // Dynamically get port
-            retryAttempts: configService.get<number>('REDIS_RETRY_ATTEMPTS'), // Dynamically get retry attempts
-            retryDelay: configService.get<number>('REDIS_RETRY_DELAY'), // Dynamically get retry delay
+            port: 6379, // Dynamically get port
+            retryAttempts: 5,
+            retryDelay: 1000, // Dynamically get retry delay
           },
         }),
         inject: [ConfigService], // Inject ConfigService into the factory

@@ -36,9 +36,9 @@ async function bootstrap() {
     transport: Transport.REDIS,
     options: {
       host: configService.get('REDIS_HOST', 'localhost'),
-      port: configService.get('REDIS_PORT', 6379),
-      retryAttempts: configService.get('REDIS_RETRY_ATTEMPTS', 5),
-      retryDelay: configService.get('REDIS_RETRY_DELAY', 1000),
+      port: 6379,
+      retryAttempts: 5,
+      retryDelay: 1000,
     },
   });
 
