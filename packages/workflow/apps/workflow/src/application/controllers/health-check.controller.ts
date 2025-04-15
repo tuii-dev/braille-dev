@@ -12,6 +12,8 @@ export class HealthCheckController {
 
   @Get()
   async healthcheck() {
+    console.log('Health check requested');
+    this.logger.info('Health check endpoint called');
     return 'OK';
   }
 }

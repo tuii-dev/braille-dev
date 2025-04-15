@@ -44,7 +44,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
+COPY start.sh /app/packages/workflow/
+RUN chmod +x /app/packages/workflow/start.sh
 
 EXPOSE 9001
 WORKDIR /app/packages/workflow
-CMD LANGCHAIN_CALLBACKS_BACKGROUND=true yarn start:prod
+CMD ["/app/packages/workflow/start.sh"]
