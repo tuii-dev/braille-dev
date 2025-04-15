@@ -17,6 +17,7 @@ import * as Joi from 'joi';
       validationSchema: Joi.object({
         REDIS_HOST: Joi.string().required(),
         AWS_REGION: Joi.string().required(),
+        NEW_RELIC_API_KEY: Joi.string().required(),
       }),
     }),
   ],

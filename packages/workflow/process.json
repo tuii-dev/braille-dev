@@ -2,11 +2,24 @@
   "apps": [
     {
       "name": "workflow",
-      "script": "dist/apps/workflow/main.js"
+      "script": "./dist/apps/workflow/main.js",
+      "instances": 1,
+      "exec_mode": "fork",
+      "watch": false,
+      "env": {
+        "PORT": "9001",
+        "NODE_ENV": "production"
+      }
     },
     {
       "name": "scheduler",
-      "script": "dist/apps/scheduler/main.js"
+      "script": "./dist/apps/scheduler/main.js",
+      "instances": 1,
+      "exec_mode": "fork",
+      "watch": false,
+      "env": {
+        "NODE_ENV": "production"
+      }
     }
   ]
 }
