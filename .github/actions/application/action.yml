@@ -48,4 +48,5 @@ runs:
       run: |
         echo 'application_image="${{ inputs.ECR_URL }}:application_${{ inputs.IMAGE_SHA }}"' >> terraform.auto.tfvars
         echo 'worker_image="${{ inputs.ECR_URL }}:worker_${{ inputs.IMAGE_SHA }}"' >> terraform.auto.tfvars
+        echo 'workflow_image="${{ inputs.ECR_URL }}:workflow_${{ inputs.IMAGE_SHA }}"' >> terraform.auto.tfvars
         terraform apply -auto-approve
