@@ -11,10 +11,6 @@ RUN yarn global add turbo@1.13.4
 COPY . .
 RUN turbo prune @jptr/braille-workflow --docker
 
-# Copy start script to a known location
-RUN mkdir -p /app/out/full/packages/workflow/
-COPY packages/workflow/start.sh /app/out/full/packages/workflow/
-
 # INSTALLER
 FROM base AS installer
 WORKDIR /app
@@ -48,8 +44,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
-RUN chmod +x /app/packages/workflow/start.sh
 
 EXPOSE 9001
 WORKDIR /app/packages/workflow
-CMD ["/app/packages/workflow/start.sh"]
+CMD ["yarn", "start:prod"]
