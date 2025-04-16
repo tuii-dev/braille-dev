@@ -1,6 +1,6 @@
 [
   {
-    "name": "worker_task",
+    "name": "braille-worker",
     "image": "${IMAGE}",
     "essential": true,
     "cpu": 512,
@@ -143,7 +143,10 @@
     "logConfiguration": {
       "logDriver": "awsfirelens",
       "options": {
-        "Name": "newrelic"
+        "Name": "newrelic",
+        "Plugin": "newrelic",
+        "service_name": "braille-worker",
+        "enable-ecs-log-metadata": "true"
       },
       "secretOptions": [
         {

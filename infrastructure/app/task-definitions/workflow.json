@@ -1,6 +1,6 @@
 [
   {
-    "name": "workflow_task",
+    "name": "braille-workflow",
     "image": "${IMAGE}",
     "essential": true,
     "cpu": 512,
@@ -135,7 +135,10 @@
     "logConfiguration": {
       "logDriver": "awsfirelens",
       "options": {
-        "Name": "newrelic"
+        "Name": "newrelic",
+        "Plugin": "newrelic",
+        "service_name": "braille-workflow",
+        "enable-ecs-log-metadata": "true"
       },
       "secretOptions": [
         {

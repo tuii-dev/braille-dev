@@ -1,6 +1,6 @@
 [
   {
-    "name": "application_task",
+    "name": "braille-application",
     "image": "${IMAGE}",
     "essential": true,
     "cpu": 1024,
@@ -144,7 +144,10 @@
     "logConfiguration": {
       "logDriver": "awsfirelens",
       "options": {
-        "Name": "newrelic"
+        "Name": "newrelic",
+        "Plugin": "newrelic",
+        "service_name": "braille-application",
+        "enable-ecs-log-metadata": "true"
       },
       "secretOptions": [
         {
