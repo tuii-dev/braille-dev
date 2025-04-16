@@ -1,5 +1,8 @@
 FROM node:20-alpine AS base
 
+# Copy start script first
+COPY start.sh /app/packages/workflow/
+
 FROM base AS prune
 
 RUN apk add --no-cache libc6-compat
@@ -44,7 +47,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
-COPY start.sh /app/packages/workflow/
+COPY --from=base /app/packages/workflow/start.sh /app/packages/workflow/
 RUN chmod +x /app/packages/workflow/start.sh
 
 EXPOSE 9001
