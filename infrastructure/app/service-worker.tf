@@ -78,7 +78,7 @@ resource "aws_secretsmanager_secret_version" "worker_env_secret_version" {
     DOCUMENTS_TOPIC_ARN               = data.tfe_outputs.services.values.DOCUMENTS_TOPIC_ARN
     ENTITIES_TOPIC_ARN                = data.tfe_outputs.services.values.ENTITIES_TOPIC_ARN
     ENTITY_EMBEDDINGS_QUEUE           = data.tfe_outputs.services.values.ENTITY_EMBEDDINGS_QUEUE
-    NEW_RELIC_API_KEY                 = var.NEW_RELIC_API_KEY,
+    NEW_RELIC_API_KEY                 = var.NEW_RELIC_API_KEY
     LANGCHAIN_API_KEY                 = var.LANGCHAIN_API_KEY
   })
 }

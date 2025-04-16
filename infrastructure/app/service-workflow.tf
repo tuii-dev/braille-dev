@@ -86,7 +86,11 @@ resource "aws_ecs_task_definition" "workflow_container" {
   container_definitions = templatefile("${path.module}/task-definitions/workflow.json", {
     IMAGE                   = var.workflow_image,
     AWSLOGS_REGION          = var.aws_region,
-    BRAILLE_ENV             = var.BRAILLE_ENV,
+    AWS_ACCESS_KEY_ID       = var.AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY   = var.AWS_SECRET_ACCESS_KEY
+    AWS_REGION              = var.aws_region
+    AWS_DEFAULT_REGION      = var.aws_region
+    BRAILLE_ENV             = var.BRAILLE_ENV
     LANGCHAIN_TRACING_V2    = var.LANGCHAIN_TRACING_V2
     AWSLOGS                 = aws_cloudwatch_log_group.worker_cloudwatch_log_group.name,
     ENV_SECRET              = aws_secretsmanager_secret.worker_env.arn
@@ -94,6 +98,9 @@ resource "aws_ecs_task_definition" "workflow_container" {
     ACTION_EXECUTION_QUEUE  = data.tfe_outputs.services.values.ACTION_EXECUTION_QUEUE
     INGESTION_SPAWNER_QUEUE = data.tfe_outputs.services.values.INGESTION_SPAWNER_QUEUE
     INGESTION_TASK_QUEUE    = data.tfe_outputs.services.values.INGESTION_TASK_QUEUE
+    LANGCHAIN_API_KEY       = var.LANGCHAIN_API_KEY
+    NEW_RELIC_API_KEY       = var.NEW_RELIC_API_KEY
+    POSTGRES_PRISMA_URL = "${data.tfe_outputs.services.values.DATABASE_URL}?connection_limit=20&pool_timeout=30"
   })
 
   requires_compatibilities = ["FARGATE"]
