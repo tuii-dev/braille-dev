@@ -39,12 +39,19 @@ RUN yarn turbo run build --filter=@jptr/braille-workflow...
 FROM base AS runner
 RUN apk add --no-cache libc6-compat wget
 RUN apk update
-# RUN apk add --no-cache bash inotify-tools imagemagick graphicsmagick ghostscript
 WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
 
+# Copy startup scripts
+COPY packages/workflow/start.sh /app/packages/workflow/start.sh
+COPY packages/workflow/ecosystem.config.js /app/packages/workflow/ecosystem.config.js
+
 EXPOSE 9001
 WORKDIR /app/packages/workflow
-CMD ["yarn", "start:prod"]
+
+# Make start script executable
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]
