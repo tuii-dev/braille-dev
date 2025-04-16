@@ -128,7 +128,7 @@ resource "aws_ecs_service" "application" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "application_task"
+    container_name   = "braille-application"
     container_port   = 3000
   }
 
