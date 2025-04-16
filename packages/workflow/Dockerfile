@@ -13,7 +13,7 @@ RUN turbo prune @jptr/braille-workflow --docker
 
 # Copy start script to a known location
 RUN mkdir -p /app/out/full/packages/workflow/
-COPY start.sh /app/out/full/packages/workflow/
+COPY packages/workflow/start.sh /app/out/full/packages/workflow/
 
 # INSTALLER
 FROM base AS installer
