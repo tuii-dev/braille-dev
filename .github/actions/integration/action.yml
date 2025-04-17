@@ -125,9 +125,33 @@ runs:
       if: always()
       shell: bash
       run: |
-        mkdir docker-logs
-        docker logs $(docker ps -aqf "name=frontend") > docker-logs/frontend.log
-        docker logs $(docker ps -aqf "name=db") > docker-logs/db.log
+        mkdir -p docker-logs
+        echo "Listing all containers:"
+        docker-compose -f docker-compose.e2e.yml ps
+
+        echo -e "\nGetting frontend container ID:"
+        frontend_container=$(docker-compose -f docker-compose.e2e.yml ps -q frontend)
+        echo "Frontend container: $frontend_container"
+
+        echo -e "\nGetting db container ID:"
+        db_container=$(docker-compose -f docker-compose.e2e.yml ps -q db)
+        echo "DB container: $db_container"
+
+        if [ ! -z "$frontend_container" ]; then
+          echo "Collecting frontend logs..."
+          docker logs $frontend_container > docker-logs/frontend.log || true
+        else
+          echo "No frontend container found"
+        fi
+
+        if [ ! -z "$db_container" ]; then
+          echo "Collecting db logs..."
+          docker logs $db_container > docker-logs/db.log || true
+        else
+          echo "No db container found"
+        fi
+
+        echo -e "\nStopping containers..."
         docker-compose -f "docker-compose.e2e.yml" down
 
     - uses: actions/upload-artifact@v4
