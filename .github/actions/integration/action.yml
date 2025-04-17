@@ -101,9 +101,15 @@ runs:
     - name: Setup Environment
       shell: bash
       run: |
-        echo 'BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"' >> .env
-        echo 'worker_image="${{ inputs.WORKER_IMAGE_TAG }}"' >> .env
-        echo 'workflow_image="${{ inputs.WORKFLOW_IMAGE_TAG }}"' >> .env
+        mkdir -p packages/application
+        echo 'BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"' >> packages/application/.env.test
+        echo 'worker_image="${{ inputs.WORKER_IMAGE_TAG }}"' >> packages/application/.env.test
+        echo 'workflow_image="${{ inputs.WORKFLOW_IMAGE_TAG }}"' >> packages/application/.env.test
+        
+        echo "=== Contents of packages/application/.env.test ==="
+        cat packages/application/.env.test
+        echo "=== End of .env.test ==="
+        
         docker compose version
         docker compose -f "docker-compose.e2e.yml" up -d
 
