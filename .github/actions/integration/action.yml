@@ -125,33 +125,34 @@ runs:
       if: always()
       shell: bash
       run: |
-        mkdir -p docker-logs
-        echo "Listing all containers:"
-        docker-compose -f docker-compose.e2e.yml ps
+        mkdir docker-logs
+        echo "=== All Running Containers ==="
+        docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 
-        echo -e "\nGetting frontend container ID:"
-        frontend_container=$(docker-compose -f docker-compose.e2e.yml ps -q frontend)
-        echo "Frontend container: $frontend_container"
+        echo "\n=== Searching for frontend container ==="
+        frontend_id=$(docker ps -aqf "name=braille-dev-frontend")
+        echo "Frontend container ID: $frontend_id"
 
-        echo -e "\nGetting db container ID:"
-        db_container=$(docker-compose -f docker-compose.e2e.yml ps -q db)
-        echo "DB container: $db_container"
+        echo "\n=== Searching for db container ==="
+        db_id=$(docker ps -aqf "name=braille-dev-db")
+        echo "DB container ID: $db_id"
 
-        if [ ! -z "$frontend_container" ]; then
-          echo "Collecting frontend logs..."
-          docker logs $frontend_container > docker-logs/frontend.log || true
+        echo "\n=== Collecting Logs ==="
+        if [ ! -z "$frontend_id" ]; then
+          echo "Getting frontend logs..."
+          docker logs $frontend_id > docker-logs/frontend.log
         else
-          echo "No frontend container found"
+          echo "No frontend container found!"
         fi
 
-        if [ ! -z "$db_container" ]; then
-          echo "Collecting db logs..."
-          docker logs $db_container > docker-logs/db.log || true
+        if [ ! -z "$db_id" ]; then
+          echo "Getting db logs..."
+          docker logs $db_id > docker-logs/db.log
         else
-          echo "No db container found"
+          echo "No db container found!"
         fi
 
-        echo -e "\nStopping containers..."
+        echo "\n=== Stopping Containers ==="
         docker-compose -f "docker-compose.e2e.yml" down
 
     - uses: actions/upload-artifact@v4
