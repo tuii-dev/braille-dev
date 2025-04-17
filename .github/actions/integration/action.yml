@@ -104,8 +104,8 @@ runs:
         echo 'BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"' >> .env
         echo 'worker_image="${{ inputs.WORKER_IMAGE_TAG }}"' >> .env
         echo 'workflow_image="${{ inputs.WORKFLOW_IMAGE_TAG }}"' >> .env
-        docker-compose -v
-        docker-compose -f "docker-compose.e2e.yml" up -d
+        docker compose version
+        docker compose -f "docker-compose.e2e.yml" up -d
 
     - name: Migrate Database
       env:
@@ -153,7 +153,7 @@ runs:
         fi
 
         echo "\n=== Stopping Containers ==="
-        docker-compose -f "docker-compose.e2e.yml" down
+        docker compose -f "docker-compose.e2e.yml" down
 
     - uses: actions/upload-artifact@v4
       if: always()
