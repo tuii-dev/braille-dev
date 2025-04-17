@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { NestFactory } from '@nestjs/core';
 import { SchedulerModule } from './scheduler.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  await import('./tracing');
+  require('./tracing');
   const configService = new ConfigService();
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     SchedulerModule,

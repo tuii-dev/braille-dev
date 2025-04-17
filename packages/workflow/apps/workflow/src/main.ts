@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
@@ -8,14 +9,14 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   console.log('Starting workflow service...');
-  await import('./tracing');
+  require('./tracing');
   console.log('Creating NestJS application...');
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  // This gets the underlying HTTP adapter (e.g. Express) and assigns it to the DomainExceptionsFilter.
-  // This allows the filter to use the HTTP adapter to determine the response to send when an exception is caught.
+  const app = await NestFactory.create(AppModule); //, { bufferLogs: true });
+  // // This gets the underlying HTTP adapter (e.g. Express) and assigns it to the DomainExceptionsFilter.
+  // // This allows the filter to use the HTTP adapter to determine the response to send when an exception is caught.
   const { httpAdapter } = app.get(HttpAdapterHost);
-  // This sets up a global filter that will catch any exceptions that are thrown by the application
-  // and use the HTTP adapter to send the appropriate response.
+  // // This sets up a global filter that will catch any exceptions that are thrown by the application
+  // // and use the HTTP adapter to send the appropriate response.
   app.useGlobalFilters(new DomainExceptionsFilter(httpAdapter));
   app.useLogger(app.get(Logger));
 
@@ -29,11 +30,11 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  // Get the ConfigService to access configuration values
+  // // Get the ConfigService to access configuration values
   const configService = app.get(ConfigService);
 
-  // Create the Redis microservice asynchronously
-  // Create and attach Redis microservice
+  // // Create the Redis microservice asynchronously
+  // // Create and attach Redis microservice
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.REDIS,
     options: {
@@ -44,7 +45,7 @@ async function bootstrap() {
     },
   });
 
-  // Start both the HTTP server and the Redis microservice
+  // // Start both the HTTP server and the Redis microservice
   console.log('Starting microservices...');
   await app.startAllMicroservices();
   console.log('Starting HTTP server on port 9001...');

@@ -74,19 +74,11 @@ import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs';
     }),
     LoggerModule.forRoot({
       pinoHttp: {
-        transport: {
-          targets: [
-            {
-              target: 'pino-pretty',
-              level: 'info',
-              options: {
-                colorize: true,
-                singleLine: true,
-              },
-            },
-          ],
-        },
+        level: 'info',
         name: 'workflows',
+        formatters: {
+          level: (label) => ({ level: label }),
+        },
       },
     }),
     ClientsModule.registerAsync([

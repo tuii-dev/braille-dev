@@ -44,14 +44,10 @@ ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
 
-# Copy startup scripts
-COPY packages/workflow/start.sh /app/packages/workflow/start.sh
-COPY packages/workflow/ecosystem.config.js /app/packages/workflow/ecosystem.config.js
+# Copy process.json
+COPY packages/workflow/process.json /app/packages/workflow/process.json
 
 EXPOSE 9001
 WORKDIR /app/packages/workflow
 
-# Make start script executable
-RUN chmod +x start.sh
-
-CMD ["./start.sh"]
+CMD ["yarn", "run", "start:prod"]
