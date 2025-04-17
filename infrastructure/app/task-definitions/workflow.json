@@ -7,7 +7,7 @@
     "memory": 1024,
     "portMappings": [
       {
-        "name": "service",
+        "name": "workflow-service",
         "containerPort": 9001,
         "hostPort": 9001,
         "protocol": "tcp"
@@ -16,12 +16,12 @@
     "healthCheck": {
       "command": [
         "CMD-SHELL",
-        "wget --quiet --tries=1 --spider http://localhost:9001/healthcheck || exit 1"
+        "wget --quiet --tries=3 --spider http://localhost:9001/healthcheck || exit 1"
       ],
       "interval": 30,
-      "timeout": 10,
+      "timeout": 15,
       "retries": 3,
-      "startPeriod": 60
+      "startPeriod": 120
     },
     "requiresCompatibilities": ["FARGATE"],
     "environment": [
@@ -138,7 +138,11 @@
         "Name": "newrelic",
         "Plugin": "newrelic",
         "service_name": "braille-workflow",
-        "enable-ecs-log-metadata": "true"
+        "enable-ecs-log-metadata": "true",
+        "log_format": "json",
+        "log_level": "info",
+        "log_level_field": "level",
+        "parse_json": "true"
       },
       "secretOptions": [
         {

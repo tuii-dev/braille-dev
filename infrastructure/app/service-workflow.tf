@@ -129,7 +129,7 @@ resource "aws_ecs_service" "workflow" {
 
     service {
       discovery_name = "workflow"
-      port_name      = "service"
+      port_name      = "workflow-service"
       client_alias {
         port     = 9001
         dns_name = "workflow.private.braille"
