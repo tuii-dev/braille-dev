@@ -100,17 +100,18 @@ runs:
 
     - name: Setup Environment
       shell: bash
+      env:
+        BRAILLE_FRONTEND_IMAGE: ${{ inputs.APP_IMAGE_TAG }}
+        worker_image: ${{ inputs.WORKER_IMAGE_TAG }}
+        workflow_image: ${{ inputs.WORKFLOW_IMAGE_TAG }}
       run: |
-        mkdir -p packages/application
-        echo "BRAILLE_FRONTEND_IMAGE=${{ inputs.APP_IMAGE_TAG }}" >> packages/application/.env.test
-        echo "worker_image=${{ inputs.WORKER_IMAGE_TAG }}" >> packages/application/.env.test
-        echo "workflow_image=${{ inputs.WORKFLOW_IMAGE_TAG }}" >> packages/application/.env.test
-
-        echo "=== Contents of packages/application/.env.test ==="
-        cat packages/application/.env.test
-        echo "=== End of .env.test ==="
-
+        echo "=== Environment Variables ==="
+        echo "BRAILLE_FRONTEND_IMAGE=$BRAILLE_FRONTEND_IMAGE"
+        echo "worker_image=$worker_image"
+        echo "workflow_image=$workflow_image"
+        echo "=== Docker Compose Version ==="
         docker compose version
+        echo "=== Starting Containers ==="
         docker compose -f "docker-compose.e2e.yml" up -d
 
     - name: Migrate Database

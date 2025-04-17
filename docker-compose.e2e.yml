@@ -1,12 +1,10 @@
-version: '3.7'
+version: "3.7"
 
 include:
   - docker-compose.yml
 
 services:
   frontend:
-    image: '${BRAILLE_FRONTEND_IMAGE}'
+    image: "${BRAILLE_FRONTEND_IMAGE}"
     ports:
       - "3000:3000"
-    env_file:
-      - ./packages/application/.env.test
