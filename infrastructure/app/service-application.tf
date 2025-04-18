@@ -31,6 +31,14 @@ resource "aws_cloudwatch_log_group" "application_cloudwatch_log_group" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "workflow_cloudwatch_log_group" {
+  name = "/ecs/braille-workflow"
+
+  tags = {
+    Environment = terraform.workspace
+  }
+}
+
 # 
 # TASKS
 # 
@@ -183,4 +191,3 @@ resource "aws_lb_target_group" "app" {
     interval = 30
   }
 }
-
