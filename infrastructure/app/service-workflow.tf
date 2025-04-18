@@ -76,6 +76,7 @@ resource "aws_secretsmanager_secret_version" "workflow_env_secret_version" {
     ENTITY_EMBEDDINGS_QUEUE           = data.tfe_outputs.services.values.ENTITY_EMBEDDINGS_QUEUE
     NEW_RELIC_API_KEY                 = var.NEW_RELIC_API_KEY,
     LANGCHAIN_API_KEY                 = var.LANGCHAIN_API_KEY
+    WORKSPACE                         = terraform.workspace
   })
 }
 
