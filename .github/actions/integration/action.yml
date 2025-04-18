@@ -63,13 +63,6 @@ runs:
         name: "mkcert"
         version: "1.4.3"
 
-    - uses: supplypike/setup-bin@v3
-      name: Upgrade Docker Compose
-      with:
-        uri: "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-linux-x86_64"
-        name: "docker-compose"
-        version: "2.24.6"
-
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -100,24 +93,29 @@ runs:
 
     - name: Setup Environment
       shell: bash
-      env:
-        BRAILLE_FRONTEND_IMAGE: ${{ inputs.APP_IMAGE_TAG }}
-        worker_image: ${{ inputs.WORKER_IMAGE_TAG }}
-        workflow_image: ${{ inputs.WORKFLOW_IMAGE_TAG }}
       run: |
+        echo "=== Input Values ==="
+        echo "APP_IMAGE_TAG='${{ inputs.APP_IMAGE_TAG }}'"
+        echo "WORKER_IMAGE_TAG='${{ inputs.WORKER_IMAGE_TAG }}'"
+        echo "WORKFLOW_IMAGE_TAG='${{ inputs.WORKFLOW_IMAGE_TAG }}'"
+
+        export BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"
+        export worker_image="${{ inputs.WORKER_IMAGE_TAG }}"
+        export workflow_image="${{ inputs.WORKFLOW_IMAGE_TAG }}"
+
         echo "=== Environment Variables ==="
-        echo "BRAILLE_FRONTEND_IMAGE=$BRAILLE_FRONTEND_IMAGE"
-        echo "worker_image=$worker_image"
-        echo "workflow_image=$workflow_image"
-        
+        echo "BRAILLE_FRONTEND_IMAGE='$BRAILLE_FRONTEND_IMAGE'"
+        echo "worker_image='$worker_image'"
+        echo "workflow_image='$workflow_image'"
+
         echo "=== Exporting Variables ==="
         export BRAILLE_FRONTEND_IMAGE="$BRAILLE_FRONTEND_IMAGE"
         export worker_image="$worker_image"
         export workflow_image="$workflow_image"
-        
+
         echo "=== Docker Compose Version ==="
         docker compose version
-        
+
         echo "=== Starting Containers ==="
         docker compose -f "docker-compose.e2e.yml" up -d
 
