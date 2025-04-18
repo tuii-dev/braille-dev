@@ -13,6 +13,9 @@ inputs:
   WORKER_IMAGE_TAG:
     required: true
     description: "The tag of the worker image to test against"
+  WORKFLOW_IMAGE_TAG:
+    required: true
+    description: "The tag of the workflow image to test against"
 runs:
   using: "composite"
   steps:
