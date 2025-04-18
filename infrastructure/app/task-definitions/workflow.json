@@ -133,33 +133,11 @@
       }
     ],
     "logConfiguration": {
-      "logDriver": "awsfirelens",
+      "logDriver": "awslogs",
       "options": {
-        "Name": "newrelic",
-        "Plugin": "newrelic",
-        "service_name": "braille-workflow",
-        "enable-ecs-log-metadata": "true",
-        "log_format": "json",
-        "log_level": "info",
-        "log_level_field": "level",
-        "parse_json": "true"
-      },
-      "secretOptions": [
-        {
-          "name": "apiKey",
-          "valueFrom": "${ENV_SECRET}:NEW_RELIC_API_KEY::"
-        }
-      ]
-    }
-  },
-  {
-    "essential": true,
-    "image": "533243300146.dkr.ecr.ca-central-1.amazonaws.com/newrelic/logging-firelens-fluentbit:1.17.1",
-    "name": "log_router",
-    "firelensConfiguration": {
-      "type": "fluentbit",
-      "options": {
-        "enable-ecs-log-metadata": "true"
+        "awslogs-group": "/ecs/braille-workflow",
+        "awslogs-region": "ca-central-1",
+        "awslogs-stream-prefix": "ecs"
       }
     }
   }
