@@ -15,6 +15,7 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "db:reset": "yarn workspace @jptr/braille-prisma db:reset && yarn workspace @jptr/braille-prisma db:generate",
+    "db:deploy": "yarn workspace @jptr/braille-prisma db:deploy",
     "tflocal:init": "tflocal -chdir=infrastructure/services init",
     "tflocal:apply": "tflocal -chdir=infrastructure/services apply -var \"AWS_ACCESS_KEY_ID=test\" -var \"AWS_SECRET_ACCESS_KEY=test\" -var \"LOCALSTACK=true\" -var \"APP_DOMAIN=braille-dev.jptr.software\"",
     "tflocal:env": "tflocal -chdir=infrastructure/services output -json > .env.local",
