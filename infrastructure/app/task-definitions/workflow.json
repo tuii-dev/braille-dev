@@ -135,7 +135,7 @@
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-group": "/ecs/braille-workflow",
+        "awslogs-group": "/ecs/${WORKSPACE}_workflow_logs",
         "awslogs-region": "ca-central-1",
         "awslogs-stream-prefix": "ecs"
       }
