@@ -13,38 +13,27 @@ inputs:
   WORKER_IMAGE_TAG:
     required: true
     description: "The tag of the worker image to test against"
-  WORKFLOW_IMAGE_TAG:
-    required: true
-    description: "The tag of the workflow image to test against"
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: 20
 
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      shell: bash
-      run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+    # - name: Install openssl v1
+    #   shell: bash
+    #   run: |
+    #     wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
+    #     sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
 
-    - uses: actions/cache@v4
-      id: yarn-cache
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
-
-    - name: Install Dependencies
+    - name: Install dependencies
       env:
         POSTGRES_PRISMA_URL: "postgresql://dbmaster:dbpassword@127.0.0.1:5432/application"
         PRISMA_CLI_BINARY_TARGETS: "debian-openssl-3.0.x"
       shell: bash
       run: |
-        yarn config set enableGlobalCache true
-        yarn install --mode=skip-build
+        npm install -g yarn
+        yarn
         yarn workspace @jptr/braille-prisma run build
         yarn workspace @jptr/braille-prisma run db:generate
 
@@ -54,7 +43,6 @@ runs:
       run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")" >> $GITHUB_ENV
 
     - uses: actions/cache@v3
-      id: playwright-cache
       with:
         path: |
           ~/.cache/ms-playwright
@@ -72,12 +60,19 @@ runs:
         name: "mkcert"
         version: "1.4.3"
 
+    - uses: supplypike/setup-bin@v3
+      name: Upgrade Docker Compose
+      with:
+        uri: "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-linux-x86_64"
+        name: "docker-compose"
+        version: "2.24.6"
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID}}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ca-central-1
+        aws-region: ap-southeast-2
 
     - name: Login to Amazon ECR
       id: ecr_auth
@@ -103,20 +98,10 @@ runs:
     - name: Setup Environment
       shell: bash
       run: |
-        echo "=== Setting up environment variables ==="
-        export BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"
-        export worker_image="${{ inputs.WORKER_IMAGE_TAG }}"
-        export workflow_image="${{ inputs.WORKFLOW_IMAGE_TAG }}"
-
-        echo "BRAILLE_FRONTEND_IMAGE='$BRAILLE_FRONTEND_IMAGE'"
-        echo "worker_image='$worker_image'"
-        echo "workflow_image='$workflow_image'"
-
-        echo "=== Docker Compose Version ==="
-        docker compose version
-
-        echo "=== Starting Containers ==="
-        docker compose -f "docker-compose.e2e.yml" up -d
+        echo 'BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"' >> .env
+        echo 'worker_image="${{ inputs.WORKER_IMAGE_TAG }}"' >> .env
+        docker-compose -v
+        docker-compose -f "docker-compose.e2e.yml" up -d
 
     - name: Migrate Database
       env:
@@ -137,34 +122,9 @@ runs:
       shell: bash
       run: |
         mkdir docker-logs
-        echo "=== All Running Containers ==="
-        docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-
-        echo "\n=== Searching for frontend container ==="
-        frontend_id=$(docker ps -aqf "name=braille-dev-frontend")
-        echo "Frontend container ID: $frontend_id"
-
-        echo "\n=== Searching for db container ==="
-        db_id=$(docker ps -aqf "name=braille-dev-db")
-        echo "DB container ID: $db_id"
-
-        echo "\n=== Collecting Logs ==="
-        if [ ! -z "$frontend_id" ]; then
-          echo "Getting frontend logs..."
-          docker logs $frontend_id > docker-logs/frontend.log
-        else
-          echo "No frontend container found!"
-        fi
-
-        if [ ! -z "$db_id" ]; then
-          echo "Getting db logs..."
-          docker logs $db_id > docker-logs/db.log
-        else
-          echo "No db container found!"
-        fi
-
-        echo "\n=== Stopping Containers ==="
-        docker compose -f "docker-compose.e2e.yml" down
+        docker logs $(docker ps -aqf "name=frontend") > docker-logs/frontend.log
+        docker logs $(docker ps -aqf "name=db") > docker-logs/db.log
+        docker-compose -f "docker-compose.e2e.yml" down
 
     - uses: actions/upload-artifact@v4
       if: always()

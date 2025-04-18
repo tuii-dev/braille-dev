@@ -5,10 +5,8 @@ include:
 
 services:
   frontend:
-    image: ${BRAILLE_FRONTEND_IMAGE}
+    image: "${BRAILLE_FRONTEND_IMAGE}"
     ports:
       - "3000:3000"
-  worker:
-    image: ${worker_image}
-  workflow:
-    image: ${workflow_image}
+    env_file:
+      - ./packages/application/.env.test
