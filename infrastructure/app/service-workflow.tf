@@ -76,7 +76,6 @@ resource "aws_secretsmanager_secret_version" "workflow_env_secret_version" {
     ENTITY_EMBEDDINGS_QUEUE           = data.tfe_outputs.services.values.ENTITY_EMBEDDINGS_QUEUE
     NEW_RELIC_API_KEY                 = var.NEW_RELIC_API_KEY,
     LANGCHAIN_API_KEY                 = var.LANGCHAIN_API_KEY
-    WORKSPACE                         = terraform.workspace
   })
 }
 
@@ -95,6 +94,7 @@ resource "aws_ecs_task_definition" "workflow_container" {
     ACTION_EXECUTION_QUEUE  = data.tfe_outputs.services.values.ACTION_EXECUTION_QUEUE
     INGESTION_SPAWNER_QUEUE = data.tfe_outputs.services.values.INGESTION_SPAWNER_QUEUE
     INGESTION_TASK_QUEUE    = data.tfe_outputs.services.values.INGESTION_TASK_QUEUE
+    WORKSPACE               = terraform.workspace
   })
 
   requires_compatibilities = ["FARGATE"]
