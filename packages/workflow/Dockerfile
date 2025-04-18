@@ -44,10 +44,21 @@ ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
 
+# Add debugging tools
+RUN npm install -g pm2
+WORKDIR /app/packages/workflow
+RUN yarn add aws-sdk --dev
+WORKDIR /app
+RUN apk add --no-cache netcat-openbsd redis
+
 # Copy process.json
 COPY packages/workflow/process.json /app/packages/workflow/process.json
 
 EXPOSE 9001
 WORKDIR /app/packages/workflow
 
-CMD ["yarn", "run", "start:prod"]
+# Add startup script with diagnostics
+COPY packages/workflow/startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
+
+CMD ["/app/startup.sh"]

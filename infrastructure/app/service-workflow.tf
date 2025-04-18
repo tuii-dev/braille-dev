@@ -88,7 +88,7 @@ resource "aws_ecs_task_definition" "workflow_container" {
     AWSLOGS_REGION          = var.aws_region,
     BRAILLE_ENV             = var.BRAILLE_ENV,
     LANGCHAIN_TRACING_V2    = var.LANGCHAIN_TRACING_V2
-    AWSLOGS                 = aws_cloudwatch_log_group.worker_cloudwatch_log_group.name,
+    AWSLOGS                 = aws_cloudwatch_log_group.workflow_cloudwatch_log_group.name,
     ENV_SECRET              = aws_secretsmanager_secret.workflow_env.arn
     REDIS_HOST              = data.tfe_outputs.services.values.REDIS_HOST
     ACTION_EXECUTION_QUEUE  = data.tfe_outputs.services.values.ACTION_EXECUTION_QUEUE

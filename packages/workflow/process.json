@@ -20,5 +20,6 @@
         "NODE_ENV": "production"
       }
     }
-  ]
+  ],
+  "shutdown_with_message": true
 }

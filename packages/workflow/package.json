@@ -9,7 +9,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "pm2 start process.json && pm2 logs --raw",
+    "start:prod": "pm2-runtime start process.json",
     "logs:delete": "pm2 flush",
     "logs:prod": "pm2 logs",
     "logs:workflow:prod": "pm2 logs workflow",
