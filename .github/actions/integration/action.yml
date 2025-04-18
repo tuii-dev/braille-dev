@@ -19,35 +19,32 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: 20
-        cache: "yarn"
+
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      shell: bash
+      run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+    - uses: actions/cache@v4
+      id: yarn-cache
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
 
     - name: Install Dependencies
-      shell: bash
-      run: |
-        yarn config set logFilters --json '[
-          { "code": "YN0060", "level": "discard" },
-          { "code": "YN0002", "level": "discard" },
-          { "code": "YN0086", "level": "discard" }
-        ]'
-        yarn install --immutable
-
-    # - name: Install openssl v1
-    #   shell: bash
-    #   run: |
-    #     wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
-    #     sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
-
-    - name: Install dependencies
       env:
         POSTGRES_PRISMA_URL: "postgresql://dbmaster:dbpassword@127.0.0.1:5432/application"
         PRISMA_CLI_BINARY_TARGETS: "debian-openssl-3.0.x"
       shell: bash
       run: |
-        npm install -g yarn
-        yarn
+        yarn config set enableGlobalCache true
+        yarn install --mode=skip-build
         yarn workspace @jptr/braille-prisma run build
         yarn workspace @jptr/braille-prisma run db:generate
 
@@ -57,6 +54,7 @@ runs:
       run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")" >> $GITHUB_ENV
 
     - uses: actions/cache@v3
+      id: playwright-cache
       with:
         path: |
           ~/.cache/ms-playwright
@@ -105,24 +103,14 @@ runs:
     - name: Setup Environment
       shell: bash
       run: |
-        echo "=== Input Values ==="
-        echo "APP_IMAGE_TAG='${{ inputs.APP_IMAGE_TAG }}'"
-        echo "WORKER_IMAGE_TAG='${{ inputs.WORKER_IMAGE_TAG }}'"
-        echo "WORKFLOW_IMAGE_TAG='${{ inputs.WORKFLOW_IMAGE_TAG }}'"
-
+        echo "=== Setting up environment variables ==="
         export BRAILLE_FRONTEND_IMAGE="${{ inputs.APP_IMAGE_TAG }}"
         export worker_image="${{ inputs.WORKER_IMAGE_TAG }}"
         export workflow_image="${{ inputs.WORKFLOW_IMAGE_TAG }}"
 
-        echo "=== Environment Variables ==="
         echo "BRAILLE_FRONTEND_IMAGE='$BRAILLE_FRONTEND_IMAGE'"
         echo "worker_image='$worker_image'"
         echo "workflow_image='$workflow_image'"
-
-        echo "=== Exporting Variables ==="
-        export BRAILLE_FRONTEND_IMAGE="$BRAILLE_FRONTEND_IMAGE"
-        export worker_image="$worker_image"
-        export workflow_image="$workflow_image"
 
         echo "=== Docker Compose Version ==="
         docker compose version
