@@ -5,6 +5,6 @@ include:
 
 services:
   frontend:
-    image: "${BRAILLE_FRONTEND_IMAGE}"
+    image: ${BRAILLE_FRONTEND_IMAGE}
     ports:
       - "3000:3000"

@@ -109,8 +109,15 @@ runs:
         echo "BRAILLE_FRONTEND_IMAGE=$BRAILLE_FRONTEND_IMAGE"
         echo "worker_image=$worker_image"
         echo "workflow_image=$workflow_image"
+        
+        echo "=== Exporting Variables ==="
+        export BRAILLE_FRONTEND_IMAGE="$BRAILLE_FRONTEND_IMAGE"
+        export worker_image="$worker_image"
+        export workflow_image="$workflow_image"
+        
         echo "=== Docker Compose Version ==="
         docker compose version
+        
         echo "=== Starting Containers ==="
         docker compose -f "docker-compose.e2e.yml" up -d
 
