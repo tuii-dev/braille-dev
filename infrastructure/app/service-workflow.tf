@@ -118,7 +118,6 @@ resource "aws_ecs_service" "workflow" {
   launch_type                = "FARGATE"
   desired_count              = 1
   deployment_maximum_percent = 300
-  enable_execute_command     = true
 
   network_configuration {
     subnets          = data.tfe_outputs.services.values.private_subnets
