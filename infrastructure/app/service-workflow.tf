@@ -103,6 +103,7 @@ resource "aws_ecs_task_definition" "workflow_container" {
   memory                   = 1024
 
   execution_role_arn = aws_iam_role.workflow_task_definition_iam_role.arn
+  task_role_arn      = aws_iam_role.workflow_task_definition_iam_role.arn
 }
 
 
