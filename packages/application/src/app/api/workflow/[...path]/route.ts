@@ -87,7 +87,25 @@ async function handleWorkflowRequest(
       body: ["GET", "HEAD"].includes(method) ? undefined : requestBody,
     });
 
-    // Get the response body as a buffer
+    // Handle 304 Not Modified responses differently
+    if (workflowResponse.status === 304) {
+      // For 304, just return a response with the status code and headers, no body
+      const response = new NextResponse(null, {
+        status: 304,
+        statusText: "Not Modified",
+      });
+      
+      // Copy any needed headers
+      workflowResponse.headers.forEach((value, key) => {
+        if (!["content-length", "connection", "keep-alive"].includes(key.toLowerCase())) {
+          response.headers.set(key, value);
+        }
+      });
+      
+      return response;
+    }
+    
+    // For all other responses, get the body and create a normal response
     const responseBody = await workflowResponse.arrayBuffer();
 
     // Create a response with the same status, headers, and body
