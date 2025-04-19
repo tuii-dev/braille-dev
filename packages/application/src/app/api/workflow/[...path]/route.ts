@@ -85,57 +85,93 @@ async function handleWorkflowRequest(
       url: workflowServiceUrl,
       path: pathSegments.join("/"),
     });
-    
+
     // Handle body extraction differently based on method
     let requestBody = null;
-    if (!["GET", "HEAD"].includes(method)) {
-      // For non-GET requests, ensure we have the body
+
+    // Force method string to uppercase to ensure consistency
+    const normalizedMethod = method.toUpperCase();
+
+    // Determine if this method might have a request body
+    // Include DELETE since some controllers may use it with a body payload
+    const methodsWithBody = ["POST", "PUT", "PATCH", "DELETE"];
+    const shouldHaveBody = methodsWithBody.includes(normalizedMethod);
+
+    if (shouldHaveBody) {
+      // For methods that typically have a body, extract it
       try {
         requestBody = await request.text();
-        
+
         // Ensure content-type is set for requests with body
         if (!headers.has("content-type")) {
           headers.set("content-type", "application/json");
         }
-        
+
         // Log request body length but not content (for privacy)
         logger.debug({
           message: "Workflow API request body",
-          bodyLength: requestBody ? requestBody.length : 0
+          bodyLength: requestBody ? requestBody.length : 0,
         });
       } catch (e) {
         logger.error({
           message: "Error extracting request body",
-          error: e instanceof Error ? e.message : String(e)
+          error: e instanceof Error ? e.message : String(e),
         });
       }
     }
 
-    // Forward the request to the workflow service
+    // Add debug headers to verify what's being sent
+    headers.set("x-original-method", normalizedMethod);
+
+    // For debugging in New Relic logs - this will help diagnose method overriding
+    logger.info({
+      message: "Request details before forwarding",
+      method: normalizedMethod,
+      path: pathSegments.join("/"),
+      bodyPresent: !!requestBody,
+      contentType: headers.get("content-type"),
+      bodyPreview: requestBody ? requestBody.substring(0, 50) : "<none>",
+    });
+
+    // Forward the request to the workflow service with explicit method handling
     const workflowResponse = await fetch(workflowServiceUrl, {
-      method: method, // Ensure method is explicitly passed
+      method: normalizedMethod,
       headers: headers,
-      body: (!["GET", "HEAD"].includes(method) && requestBody) ? requestBody : undefined,
+      body: shouldHaveBody ? requestBody : undefined,
     });
 
     // Handle 304 Not Modified responses differently
     if (workflowResponse.status === 304) {
+      // Log 304 Not Modified responses for monitoring and caching optimization
+      logger.info({
+        message: "Workflow API proxy 304 response",
+        method: normalizedMethod,
+        path: pathSegments.join("/"),
+        status: 304,
+        url: workflowServiceUrl,
+        bodyPreview: requestBody ? requestBody.substring(0, 50) : "<none>",
+      });
+
       // For 304, just return a response with the status code and headers, no body
       const response = new NextResponse(null, {
         status: 304,
         statusText: "Not Modified",
       });
-      
+
       // Copy any needed headers
       workflowResponse.headers.forEach((value, key) => {
-        if (!["content-length", "connection", "keep-alive"].includes(key.toLowerCase())) {
+        if (
+          !["content-length", "connection", "keep-alive"].includes(
+            key.toLowerCase(),
+          )
+        ) {
           response.headers.set(key, value);
         }
       });
-      
+
       return response;
     }
-    
+
     // For all other responses, get the body and create a normal response
     const responseBody = await workflowResponse.arrayBuffer();
 
@@ -162,9 +198,9 @@ async function handleWorkflowRequest(
       message: "Workflow API proxy response",
       status: workflowResponse.status,
       method,
-      path: pathSegments.join("/")
+      path: pathSegments.join("/"),
     });
-    
+
     return response;
   } catch (error) {
     // Log the error
@@ -173,9 +209,9 @@ async function handleWorkflowRequest(
       error: error instanceof Error ? error.message : String(error),
       method,
       url: workflowServiceUrl,
-      path: pathSegments.join("/")
+      path: pathSegments.join("/"),
     });
-    
+
     // Provide more detailed error information
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorDetails = {
