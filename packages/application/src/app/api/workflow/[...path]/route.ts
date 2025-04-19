@@ -5,61 +5,61 @@ import { NextRequest, NextResponse } from "next/server";
 // These methods will handle any HTTP verb
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: { path: string[] } },
 ) {
-  return handleWorkflowRequest(request, params.path, 'GET');
+  return handleWorkflowRequest(request, params.path, "GET");
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: { path: string[] } },
 ) {
-  return handleWorkflowRequest(request, params.path, 'POST');
+  return handleWorkflowRequest(request, params.path, "POST");
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: { path: string[] } },
 ) {
-  return handleWorkflowRequest(request, params.path, 'PUT');
+  return handleWorkflowRequest(request, params.path, "PUT");
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: { path: string[] } },
 ) {
-  return handleWorkflowRequest(request, params.path, 'DELETE');
+  return handleWorkflowRequest(request, params.path, "DELETE");
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: { path: string[] } },
 ) {
-  return handleWorkflowRequest(request, params.path, 'PATCH');
+  return handleWorkflowRequest(request, params.path, "PATCH");
 }
 
 // Central function to handle all request types
 async function handleWorkflowRequest(
   request: NextRequest,
   pathSegments: string[],
-  method: string
+  method: string,
 ) {
-  try {
-    // Optional: Check authentication/authorization
-    try {
-      const session = await getSession();
-      await getCurrentUser(session);
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Unauthorized access" },
-        { status: 401 }
-      );
-    }
+  // Construct the URL to the workflow service using AWS Service Connect naming
+  // Using the service discovery name from your service_connect_configuration
+  const workflowServiceUrl = `${process.env.WORKFLOW_ENDPOINT}/${pathSegments.join("/")}`;
 
-    // Construct the URL to the workflow service using AWS Service Connect naming
-    // Using the service discovery name from your service_connect_configuration
-    const workflowServiceUrl = `http://workflow.private.braille:9001/${pathSegments.join("/")}`;
-    
+  try {
+    // Optional: Skip authentication for now to debug connectivity
+    // try {
+    //   const session = await getSession();
+    //   await getCurrentUser(session);
+    // } catch (error) {
+    //   return NextResponse.json(
+    //     { error: "Unauthorized access" },
+    //     { status: 401 }
+    //   );
+    // };
+
     // Get request headers and body
     const headers = new Headers();
     request.headers.forEach((value, key) => {
@@ -68,10 +68,13 @@ async function handleWorkflowRequest(
         headers.append(key, value);
       }
     });
-    
+
     // Set the content type if not already set
     if (!headers.has("content-type") && request.headers.get("content-type")) {
-      headers.set("content-type", request.headers.get("content-type") || "application/json");
+      headers.set(
+        "content-type",
+        request.headers.get("content-type") || "application/json",
+      );
     }
 
     // Clone the request for its body
@@ -96,7 +99,11 @@ async function handleWorkflowRequest(
     // Copy workflow response headers to our response
     workflowResponse.headers.forEach((value, key) => {
       // Skip headers that are managed by Next.js
-      if (!["content-length", "connection", "keep-alive"].includes(key.toLowerCase())) {
+      if (
+        !["content-length", "connection", "keep-alive"].includes(
+          key.toLowerCase(),
+        )
+      ) {
         response.headers.set(key, value);
       }
     });
@@ -104,9 +111,16 @@ async function handleWorkflowRequest(
     return response;
   } catch (error) {
     console.error("Error forwarding request to workflow service:", error);
-    return NextResponse.json(
-      { error: "Failed to communicate with workflow service" },
-      { status: 502 }
-    );
+
+    // Provide more detailed error information
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorDetails = {
+      error: "Failed to communicate with workflow service",
+      details: errorMessage,
+      url: workflowServiceUrl,
+      // Include more debugging info here
+    };
+
+    return NextResponse.json(errorDetails, { status: 502 });
   }
 }
