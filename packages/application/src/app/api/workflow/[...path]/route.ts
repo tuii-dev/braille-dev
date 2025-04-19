@@ -15,6 +15,14 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { path: string[] } },
 ) {
+  // Log the actual method from the request
+  logger.info({
+    message: "POST handler called",
+    actualMethod: request.method,
+    url: request.url,
+    nextMethod: "POST"
+  });
+  
   return handleWorkflowRequest(request, params.path, "POST");
 }
 
@@ -45,6 +53,14 @@ async function handleWorkflowRequest(
   pathSegments: string[],
   method: string,
 ) {
+  // Debug log to check if method is properly passed and request properties
+  logger.info({
+    message: "Method info in handleWorkflowRequest",
+    passedMethod: method,
+    actualRequestMethod: request.method,
+    nextJsRouteMethod: request.nextUrl?.searchParams?.get("_method") || "not found"
+  });
+  
   // Construct the URL to the workflow service using AWS Service Connect naming
   // Using the service discovery name from your service_connect_configuration
   const workflowServiceUrl = `${process.env.WORKFLOW_ENDPOINT}/${pathSegments.join("/")}`;
