@@ -84,7 +84,7 @@ resource "aws_ecs_task_definition" "workflow_container" {
   family = "${terraform.workspace}-workflow_container"
 
   container_definitions = templatefile("${path.module}/task-definitions/workflow.json", {
-    IMAGE                   = var.worker_image,
+    IMAGE                   = var.workflow_image,
     AWSLOGS_REGION          = var.aws_region,
     BRAILLE_ENV             = var.BRAILLE_ENV,
     LANGCHAIN_TRACING_V2    = var.LANGCHAIN_TRACING_V2
