@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { getSession } from "@auth0/nextjs-auth0";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/logger";
 
 // These methods will handle any HTTP verb
 export async function GET(
@@ -77,14 +78,44 @@ async function handleWorkflowRequest(
       );
     }
 
-    // Clone the request for its body
-    const requestBody = request.body ? await request.text() : null;
+    // Log the incoming request
+    logger.info({
+      message: "Workflow API proxy request",
+      method,
+      url: workflowServiceUrl,
+      path: pathSegments.join("/"),
+    });
+    
+    // Handle body extraction differently based on method
+    let requestBody = null;
+    if (!["GET", "HEAD"].includes(method)) {
+      // For non-GET requests, ensure we have the body
+      try {
+        requestBody = await request.text();
+        
+        // Ensure content-type is set for requests with body
+        if (!headers.has("content-type")) {
+          headers.set("content-type", "application/json");
+        }
+        
+        // Log request body length but not content (for privacy)
+        logger.debug({
+          message: "Workflow API request body",
+          bodyLength: requestBody ? requestBody.length : 0
+        });
+      } catch (e) {
+        logger.error({
+          message: "Error extracting request body",
+          error: e instanceof Error ? e.message : String(e)
+        });
+      }
+    }
 
     // Forward the request to the workflow service
     const workflowResponse = await fetch(workflowServiceUrl, {
-      method,
-      headers,
-      body: ["GET", "HEAD"].includes(method) ? undefined : requestBody,
+      method: method, // Ensure method is explicitly passed
+      headers: headers,
+      body: (!["GET", "HEAD"].includes(method) && requestBody) ? requestBody : undefined,
     });
 
     // Handle 304 Not Modified responses differently
@@ -126,17 +157,31 @@ async function handleWorkflowRequest(
       }
     });
 
+    // Log successful response
+    logger.info({
+      message: "Workflow API proxy response",
+      status: workflowResponse.status,
+      method,
+      path: pathSegments.join("/")
+    });
+    
     return response;
   } catch (error) {
-    console.error("Error forwarding request to workflow service:", error);
-
+    // Log the error
+    logger.error({
+      message: "Workflow API proxy error",
+      error: error instanceof Error ? error.message : String(error),
+      method,
+      url: workflowServiceUrl,
+      path: pathSegments.join("/")
+    });
+    
     // Provide more detailed error information
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorDetails = {
       error: "Failed to communicate with workflow service",
       details: errorMessage,
       url: workflowServiceUrl,
-      // Include more debugging info here
     };
 
     return NextResponse.json(errorDetails, { status: 502 });
