@@ -8,6 +8,14 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } },
 ) {
+  // Log the actual method from the request
+  logger.info({
+    message: "GET handler called",
+    actualMethod: request.method,
+    url: request.url,
+    nextMethod: "GET",
+  });
+
   return handleWorkflowRequest(request, params.path, "GET");
 }
 
@@ -15,14 +23,40 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { path: string[] } },
 ) {
-  // Log the actual method from the request
+  // Clone the request for debugging POST handler
+  const requestClone = request.clone();
+  let requestBody = "";
+  
+  try {
+    // Try to read the body to verify it exists
+    requestBody = await requestClone.text();
+  } catch (e) {
+    logger.error({
+      message: "Error reading request body in POST handler",
+      error: e instanceof Error ? e.message : String(e)
+    });
+  }
+  
+  // Log the actual method from the request with more details
   logger.info({
-    message: "POST handler called",
+    message: "POST handler explicitly called",
     actualMethod: request.method,
     url: request.url,
-    nextMethod: "POST"
+    bodyLength: requestBody.length,
+    bodyExists: requestBody.length > 0,
+    bodyPreview: requestBody.substring(0, 50),
+    contentType: request.headers.get("content-type"),
   });
-  
+
+  // Check if this is truly a GET masquerading as a POST call
+  if (request.method === "GET") {
+    logger.warn({
+      message: "POST handler received a GET request",
+      url: request.url,
+      // This is likely due to Next.js App Router behavior or middleware
+    });
+  }
+
   return handleWorkflowRequest(request, params.path, "POST");
 }
 
@@ -54,13 +88,26 @@ async function handleWorkflowRequest(
   method: string,
 ) {
   // Debug log to check if method is properly passed and request properties
+  // Extract all headers for debugging
+  const allHeaders: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    allHeaders[key] = value;
+  });
+
   logger.info({
     message: "Method info in handleWorkflowRequest",
     passedMethod: method,
     actualRequestMethod: request.method,
-    nextJsRouteMethod: request.nextUrl?.searchParams?.get("_method") || "not found"
+    actualUrl: request.url,
+    nextJsRouteMethod:
+      request.nextUrl?.searchParams?.get("_method") || "not found",
+    allHeaders: allHeaders,
+    requestHasBody: request.body !== null,
+    // Check for specific headers that might indicate method rewriting
+    xForwardedMethod: allHeaders["x-forwarded-method"] || "not present",
+    xHttpMethodOverride: allHeaders["x-http-method-override"] || "not present",
   });
-  
+
   // Construct the URL to the workflow service using AWS Service Connect naming
   // Using the service discovery name from your service_connect_configuration
   const workflowServiceUrl = `${process.env.WORKFLOW_ENDPOINT}/${pathSegments.join("/")}`;
