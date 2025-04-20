@@ -8,14 +8,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } },
 ) {
-  // Log the actual method from the request
-  logger.info({
-    message: "GET handler called",
-    actualMethod: request.method,
-    url: request.url,
-    nextMethod: "GET",
-  });
-
   return handleWorkflowRequest(request, params.path, "GET");
 }
 
@@ -23,40 +15,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { path: string[] } },
 ) {
-  // Clone the request for debugging POST handler
-  const requestClone = request.clone();
-  let requestBody = "";
-  
-  try {
-    // Try to read the body to verify it exists
-    requestBody = await requestClone.text();
-  } catch (e) {
-    logger.error({
-      message: "Error reading request body in POST handler",
-      error: e instanceof Error ? e.message : String(e)
-    });
-  }
-  
-  // Log the actual method from the request with more details
-  logger.info({
-    message: "POST handler explicitly called",
-    actualMethod: request.method,
-    url: request.url,
-    bodyLength: requestBody.length,
-    bodyExists: requestBody.length > 0,
-    bodyPreview: requestBody.substring(0, 50),
-    contentType: request.headers.get("content-type"),
-  });
-
-  // Check if this is truly a GET masquerading as a POST call
-  if (request.method === "GET") {
-    logger.warn({
-      message: "POST handler received a GET request",
-      url: request.url,
-      // This is likely due to Next.js App Router behavior or middleware
-    });
-  }
-
+  // Pass through to central request handler
   return handleWorkflowRequest(request, params.path, "POST");
 }
 
@@ -87,43 +46,13 @@ async function handleWorkflowRequest(
   pathSegments: string[],
   method: string,
 ) {
-  // Debug log to check if method is properly passed and request properties
-  // Extract all headers for debugging
-  const allHeaders: Record<string, string> = {};
-  request.headers.forEach((value, key) => {
-    allHeaders[key] = value;
-  });
-
-  logger.info({
-    message: "Method info in handleWorkflowRequest",
-    passedMethod: method,
-    actualRequestMethod: request.method,
-    actualUrl: request.url,
-    nextJsRouteMethod:
-      request.nextUrl?.searchParams?.get("_method") || "not found",
-    allHeaders: allHeaders,
-    requestHasBody: request.body !== null,
-    // Check for specific headers that might indicate method rewriting
-    xForwardedMethod: allHeaders["x-forwarded-method"] || "not present",
-    xHttpMethodOverride: allHeaders["x-http-method-override"] || "not present",
-  });
+  // Start processing the request
 
   // Construct the URL to the workflow service using AWS Service Connect naming
   // Using the service discovery name from your service_connect_configuration
   const workflowServiceUrl = `${process.env.WORKFLOW_ENDPOINT}/${pathSegments.join("/")}`;
 
   try {
-    // Optional: Skip authentication for now to debug connectivity
-    // try {
-    //   const session = await getSession();
-    //   await getCurrentUser(session);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized access" },
-    //     { status: 401 }
-    //   );
-    // };
-
     // Get request headers and body
     const headers = new Headers();
     request.headers.forEach((value, key) => {
@@ -141,11 +70,10 @@ async function handleWorkflowRequest(
       );
     }
 
-    // Log the incoming request
+    // Log basic request info
     logger.info({
       message: "Workflow API proxy request",
-      method,
-      url: workflowServiceUrl,
+      method: method.toUpperCase(),
       path: pathSegments.join("/"),
     });
 
@@ -169,12 +97,6 @@ async function handleWorkflowRequest(
         if (!headers.has("content-type")) {
           headers.set("content-type", "application/json");
         }
-
-        // Log request body length but not content (for privacy)
-        logger.debug({
-          message: "Workflow API request body",
-          bodyLength: requestBody ? requestBody.length : 0,
-        });
       } catch (e) {
         logger.error({
           message: "Error extracting request body",
@@ -183,37 +105,17 @@ async function handleWorkflowRequest(
       }
     }
 
-    // Add debug headers to verify what's being sent
-    headers.set("x-original-method", normalizedMethod);
-
-    // For debugging in New Relic logs - this will help diagnose method overriding
-    logger.info({
-      message: "Request details before forwarding",
-      method: normalizedMethod,
-      path: pathSegments.join("/"),
-      bodyPresent: !!requestBody,
-      contentType: headers.get("content-type"),
-      bodyPreview: requestBody ? requestBody.substring(0, 50) : "<none>",
-    });
-
     // Forward the request to the workflow service with explicit method handling
     const workflowResponse = await fetch(workflowServiceUrl, {
       method: normalizedMethod,
       headers: headers,
       body: shouldHaveBody ? requestBody : undefined,
+      cache: "no-store" // Prevent caching
     });
 
     // Handle 304 Not Modified responses differently
     if (workflowResponse.status === 304) {
-      // Log 304 Not Modified responses for monitoring and caching optimization
-      logger.info({
-        message: "Workflow API proxy 304 response",
-        method: normalizedMethod,
-        path: pathSegments.join("/"),
-        status: 304,
-        url: workflowServiceUrl,
-        bodyPreview: requestBody ? requestBody.substring(0, 50) : "<none>",
-      });
+      // 304 Not Modified response handling
 
       // For 304, just return a response with the status code and headers, no body
       const response = new NextResponse(null, {
