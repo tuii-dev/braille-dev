@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
-import { AwsTopicType } from '../shared/enums/aws-topic-type';
+import { AwsTopicType } from '../../shared/enums/aws-topic-type';
 
 @Injectable()
 export class SnsClientService {

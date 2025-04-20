@@ -158,6 +158,7 @@ import {
   GraphService,
   SchemaDependencyService,
   WorkflowExecutionProjectionService,
+  WorkflowMetricsService,
 } from './services';
 import {
   UtilsService,
@@ -319,4 +320,5 @@ export const Services = [
   HttpService,
   SnsClientService,
   RedisService,
+  WorkflowMetricsService,
 ];

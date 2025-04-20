@@ -11,6 +11,7 @@ import {
 } from '@ocoda/event-sourcing';
 
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { Span } from '@amplication/opentelemetry-nestjs';
 import {
   WorkflowExecutionRepository,
   WorkflowTemplateRepository,
@@ -24,7 +25,10 @@ import {
   WorkflowExecutionId,
   WorkflowExecution,
 } from 'apps/workflow/src/domain/models';
-import { SchemaDependencyService } from 'apps/workflow/src/services';
+import {
+  SchemaDependencyService,
+  WorkflowMetricsService,
+} from 'apps/workflow/src/services';
 import { WorkflowCommandResponseDto } from '../../dtos/common/workflow-command-response.dto';
 import { IWorkflowEmittedState } from '../../interfaces/workflow-emitted-state.interface';
 import { IWorkflowTemplate } from '../../interfaces/workflow-template.interface';
@@ -80,10 +84,12 @@ export class RunWorkflowCommand implements ICommand {
 }
 
 @CommandHandler(RunWorkflowCommand)
+@Span('Command:RunWorkflow')
 export class RunWorkflowCommandHandler implements ICommandHandler {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly utilsService: UtilsService,
+    private readonly metricsService: WorkflowMetricsService,
     private readonly schemaDependencyService: SchemaDependencyService,
     private readonly workflowTemplateRepository: WorkflowTemplateRepository,
     private readonly workflowExecutionRepository: WorkflowExecutionRepository,
@@ -208,6 +214,8 @@ export class RunWorkflowCommandHandler implements ICommandHandler {
       this.logger.info('Workflow execution started successfully', {
         executionId: executionId.value,
       });
+
+      this.metricsService.incrementTotalWorkflowsStartedCounter();
       return new WorkflowCommandResponseDto(true, executionId.value, undefined);
     } else {
       return new WorkflowCommandResponseDto(false, undefined, 'INTERRUPTED');

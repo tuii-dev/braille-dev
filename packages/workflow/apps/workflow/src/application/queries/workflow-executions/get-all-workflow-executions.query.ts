@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { WorkflowExecutionDto } from '@app/application/dtos/workflow-executions/workflow-execution.dto';
 import { WorkflowExecutionRepository } from '@app/application/repositories/workflow-executions/workflow-execution.repository';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import {
   QueryHandler,
   type IQuery,

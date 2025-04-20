@@ -15,7 +15,7 @@ import { Injectable } from '@nestjs/common';
 // } from '@ssut/nestjs-sqs';
 import { CronJob } from 'cron';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { SqsClientService } from '@app/common/services/sqs-client.service';
+import { SqsClientService } from '@app/common/services/aws/sqs-client.service';
 import { ConfigService } from '@nestjs/config';
 import { MessageDeduplicationService } from '@app/common/services';
 

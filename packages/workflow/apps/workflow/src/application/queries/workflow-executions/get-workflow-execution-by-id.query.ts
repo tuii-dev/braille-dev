@@ -3,7 +3,7 @@ import { WorkflowExecutionDto } from '@app/application/dtos/workflow-executions/
 import { WorkflowExecutionRepository } from '@app/application/repositories/workflow-executions/workflow-execution.repository';
 import { WorkflowExecutionNotFoundException } from '@app/domain/exceptions';
 import { WorkflowExecutionId } from '@app/domain/models/workflow-executions/workflow-execution-id';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import {
   QueryHandler,
   type IQuery,

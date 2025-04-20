@@ -41,6 +41,7 @@ import {
   Workspace,
 } from '@app/common/shared/event-sourcing/domain/models';
 import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs';
+import { context, trace } from '@opentelemetry/api';
 
 @Module({
   imports: [
@@ -78,6 +79,15 @@ import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs';
         name: 'workflows',
         formatters: {
           level: (label) => ({ level: label }),
+        },
+        mixin() {
+          const span = trace.getSpan(context.active());
+          if (!span) return {};
+          const spanContext = span.spanContext();
+          return {
+            trace_id: spanContext.traceId,
+            span_id: spanContext.spanId,
+          };
         },
       },
     }),

@@ -3,7 +3,7 @@ import { WorkflowTemplateDto } from '@app/application/dtos/workflow-template/wor
 import { WorkflowTemplateRepository } from '@app/application/repositories/workflow-templates/workflow-template.repository';
 import { WorkflowTemplateNotFoundException } from '@app/domain/exceptions';
 import { WorkflowTemplateId } from '@app/domain/models/workflow-templates/workflow-template-id';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import {
   QueryHandler,
   type IQuery,

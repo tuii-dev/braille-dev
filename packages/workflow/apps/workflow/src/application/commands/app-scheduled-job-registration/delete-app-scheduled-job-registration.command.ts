@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import { Injectable } from '@nestjs/common';
 import {
   CommandHandler,

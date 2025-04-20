@@ -3,7 +3,7 @@ import { WorkspaceDto } from '@app/common/shared/event-sourcing/application/dtos
 import { WorkspaceRepository } from '@app/common/shared/event-sourcing/application/repositories/workspaces/workspace.repository';
 import { WorkspaceNotFoundException } from '@app/domain/exceptions/workspace-not-found.exception';
 import { WorkspaceId } from '@app/common/shared/event-sourcing/domain/models/workspace/workspace-id';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import {
   QueryHandler,
   type IQuery,

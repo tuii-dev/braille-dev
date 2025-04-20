@@ -23,7 +23,7 @@ import { IWorkflowStepError } from '@app/application/interfaces/workflow-step-er
 import { IWorkflowStep } from '@app/application/interfaces/workflow-step.interface';
 import { WorkflowResponseType } from '@app/common/shared/types/callback-result-type';
 import { WorkflowExecution } from '@app/domain/models';
-import { HttpService } from '@app/common/services/http.service';
+import { HttpService } from '@app/common/services/transport/http.service';
 import { UtilsService } from '@app/common/services';
 
 export class ManageWorkflowCompletionCommand implements ICommand {

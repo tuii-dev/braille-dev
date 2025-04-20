@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { WorkflowTemplateDto } from '@app/application/dtos/workflow-template/workflow-template.dto';
 import { WorkflowTemplateRepository } from '@app/application/repositories/workflow-templates/workflow-template.repository';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import {
   QueryHandler,
   type IQuery,

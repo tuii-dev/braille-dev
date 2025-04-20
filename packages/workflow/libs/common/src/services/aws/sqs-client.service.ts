@@ -9,7 +9,7 @@ import {
   SendMessageCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
-import { AwsQueueUrlType } from '../shared/enums/aws-queue-url-type';
+import { AwsQueueUrlType } from '../../shared/enums/aws-queue-url-type';
 
 @Injectable()
 export class SqsClientService {

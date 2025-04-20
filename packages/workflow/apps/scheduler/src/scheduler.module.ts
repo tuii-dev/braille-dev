@@ -36,6 +36,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppScheduledJob } from '@app/common/shared/event-sourcing/domain/models/app-scheduled-job/app-scheduled-job.aggregate';
+import { context, trace } from '@opentelemetry/api';
 // import { OpenTelemetryModule } from '@amplication/opentelemetry-nestjs';
 
 @Module({
@@ -75,6 +76,15 @@ import { AppScheduledJob } from '@app/common/shared/event-sourcing/domain/models
         name: 'scheduler',
         formatters: {
           level: (label) => ({ level: label }),
+        },
+        mixin() {
+          const span = trace.getSpan(context.active());
+          if (!span) return {};
+          const spanContext = span.spanContext();
+          return {
+            trace_id: spanContext.traceId,
+            span_id: spanContext.spanId,
+          };
         },
       },
     }),

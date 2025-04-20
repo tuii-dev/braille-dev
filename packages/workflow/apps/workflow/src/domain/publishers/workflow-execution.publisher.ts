@@ -9,7 +9,7 @@ import { PinoLogger } from 'nestjs-pino/PinoLogger';
 import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
-import { SnsClientService } from '@app/common/services/sns-client.service';
+import { SnsClientService } from '@app/common/services/aws/sns-client.service';
 import { AwsTopicType } from '@app/common/shared/enums/aws-topic-type';
 import { WorkflowExecutionStartedEvent } from '../events/workflow-executions/workflow-execution-started.event';
 import { WorkflowExecutionProjectionService } from '@app/services/workflow-execution-projection.service';

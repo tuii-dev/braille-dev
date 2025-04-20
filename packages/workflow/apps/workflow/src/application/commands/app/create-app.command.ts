@@ -3,7 +3,7 @@ import { AppDto } from '@app/common/shared/event-sourcing/application/dtos/app/a
 import { AppRepository } from '@app/common/shared/event-sourcing/application/repositories/app/app.repository';
 import { AppId } from '@app/common/shared/event-sourcing/domain/models/app/app-id';
 import { App } from '@app/common/shared/event-sourcing/domain/models/app/app.aggregate';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import { Injectable } from '@nestjs/common';
 import {
   CommandHandler,

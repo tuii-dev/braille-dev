@@ -4,7 +4,7 @@ import {
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { WorkflowTemplateRepository } from '../../repositories/workflow-templates/workflow-template.repository';

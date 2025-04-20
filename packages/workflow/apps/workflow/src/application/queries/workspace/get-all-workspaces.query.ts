@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { WorkspaceDto } from '@app/common/shared/event-sourcing/application/dtos/workspace/workspace.dto';
 import { WorkspaceRepository } from '@app/common/shared/event-sourcing/application/repositories/workspaces/workspace.repository';
-import { UtilsService } from '@app/common/services/utils.service';
+import { UtilsService } from '@app/common/services/utils/utils.service';
 import {
   QueryHandler,
   type IQuery,
