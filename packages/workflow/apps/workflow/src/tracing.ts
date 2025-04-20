@@ -19,10 +19,9 @@ const zipkinTraceExporter = new ZipkinExporter({
 
 // Metrics
 const collectorOptions = {
-  url: 'https://metric-api.newrelic.com/metric/v1', // url is optional and can be omitted - default is http://localhost:4318/v1/metrics
+  url: 'https://otlp.nr-data.net:4318/v1/metrics', // url is optional and can be omitted - default is http://localhost:4318/v1/metrics
   headers: {
     'Api-Key': NEW_RELIC_API_KEY ?? '',
-    'Content-Type': 'application/json',
   }, // an optional object containing custom headers to be sent with each request
 };
 const metricExporter = new OTLPMetricExporter(collectorOptions);
