@@ -1,7 +1,8 @@
 // metrics.service.ts
 import { Injectable } from '@nestjs/common';
-import { metrics } from '@opentelemetry/api';
+import { metrics, ValueType } from '@opentelemetry/api';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { WorkflowStartedCounterArgs } from './attributes/common-workflow-args.interface';
 
 @Injectable()
 export class WorkflowMetricsService {
@@ -10,7 +11,7 @@ export class WorkflowMetricsService {
     'total_workflows_started',
     {
       description: 'Total workflows started',
-      valueType: 1, // 1 = INT (from ValueType.INT)
+      valueType: ValueType.INT,
     },
   );
 
@@ -19,7 +20,13 @@ export class WorkflowMetricsService {
     private readonly logger: PinoLogger,
   ) {}
 
-  incrementTotalWorkflowsStartedCounter() {
-    this.totalWorkflowsStartedCounter.add(1);
+  incrementTotalWorkflowsStartedCounter({
+    tenantId,
+    workflowTemplateId,
+  }: WorkflowStartedCounterArgs) {
+    this.totalWorkflowsStartedCounter.add(1, {
+      tenantId,
+      workflowTemplateId,
+    });
   }
 }

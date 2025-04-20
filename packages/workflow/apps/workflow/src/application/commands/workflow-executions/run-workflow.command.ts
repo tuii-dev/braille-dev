@@ -215,7 +215,10 @@ export class RunWorkflowCommandHandler implements ICommandHandler {
         executionId: executionId.value,
       });
 
-      this.metricsService.incrementTotalWorkflowsStartedCounter();
+      this.metricsService.incrementTotalWorkflowsStartedCounter({
+        tenantId: tenantId.value,
+        workflowTemplateId: templateId.value,
+      });
       return new WorkflowCommandResponseDto(true, executionId.value, undefined);
     } else {
       return new WorkflowCommandResponseDto(false, undefined, 'INTERRUPTED');

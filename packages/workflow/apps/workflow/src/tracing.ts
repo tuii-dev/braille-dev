@@ -17,17 +17,23 @@ const zipkinTraceExporter = new ZipkinExporter({
     : undefined,
 });
 
+// const traceExporter = new OTLPTraceExporter({
+//   url: 'https://otlp.nr-data.net:4318/v1/traces',
+//   headers: { 'api-key': NEW_RELIC_API_KEY }, // Lowercase
+//   compression: 'gzip',
+// });
+
 // Metrics
 const collectorOptions = {
   url: 'https://otlp.nr-data.net:4318/v1/metrics', // url is optional and can be omitted - default is http://localhost:4318/v1/metrics
   headers: {
-    'Api-Key': NEW_RELIC_API_KEY ?? '',
+    'api-key': NEW_RELIC_API_KEY ?? '',
   }, // an optional object containing custom headers to be sent with each request
 };
 const metricExporter = new OTLPMetricExporter(collectorOptions);
 const metricReader = new PeriodicExportingMetricReader({
   exporter: metricExporter,
-  exportIntervalMillis: 1000,
+  exportIntervalMillis: 15_000,
 });
 
 Tracing.init({
