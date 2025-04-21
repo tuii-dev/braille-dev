@@ -9,6 +9,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkflowExecutionStepCompletedEvent } from './workflow-execution-step-completed.event';
 import { WorkflowStepNotFoundException } from '@app/domain/exceptions/workflow-step-not-found.exception';
 import { WorkflowExecutionStepId } from '@app/domain/models/workflow-executions/workflow-execution-step-id';
+import { WorkflowMetricsService } from '@app/services';
 
 @EventSubscriber(WorkflowExecutionStepCompletedEvent)
 export class WorkflowExecutionStepCompletedEventSubscriber
@@ -16,6 +17,7 @@ export class WorkflowExecutionStepCompletedEventSubscriber
 {
   constructor(
     private eventEmitter: EventEmitter2,
+    private readonly metricsService: WorkflowMetricsService,
     @InjectPinoLogger(WorkflowExecutionStepCompletedEventSubscriber.name)
     private readonly logger: PinoLogger,
   ) {}
@@ -39,7 +41,8 @@ export class WorkflowExecutionStepCompletedEventSubscriber
       );
     }
 
-    if (event.status !== 'FAILED') {
+    const workflowStatus = event.status;
+    if (workflowStatus !== 'FAILED') {
       if (Array.isArray(node.edges) && node.edges.length > 0) {
         this.eventEmitter.emit('workflow.step.start', {
           tenantId: event.tenantId,
@@ -60,6 +63,16 @@ export class WorkflowExecutionStepCompletedEventSubscriber
           appId: event.appId,
         });
       }
+
+      const startDate = node.startDate;
+      const endDate = node.endDate;
+      const actionType = node.actionType ?? 'UNDEFINED';
+
+      this.metricsService.recordWorkflowStepCompletionDuration(
+        actionType,
+        startDate,
+        endDate,
+      );
     } else {
       this.logger.info(
         `Node ${event.completedNodeId} failed.  Skipping next step processing.`,

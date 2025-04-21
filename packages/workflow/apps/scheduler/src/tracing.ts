@@ -6,6 +6,8 @@ import { Tracing } from '@amplication/opentelemetry-nestjs';
 // Metrics
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { Resource } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 const NEW_RELIC_API_KEY = process.env.NEW_RELIC_API_KEY;
 
@@ -34,4 +36,7 @@ Tracing.init({
   instrumentations: [new PrismaInstrumentation()],
   spanProcessor: new SimpleSpanProcessor(exporter),
   metricReader: metricReader,
+  resource: new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: 'braille-workflow',
+  }),
 });

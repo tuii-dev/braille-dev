@@ -14,6 +14,8 @@ export * from './workflow-executions/workflow-execution-failed.event';
 
 // Workflow Execution Event Subscribers
 export * from './workflow-executions/workflow-execution-started.event-subscriber';
+export * from './workflow-executions/workflow-execution-step-started.event-subscriber';
 export * from './workflow-executions/workflow-execution-step-completed.event-subscriber';
 export * from './workflow-executions/workflow-execution-step-failed.event-subscriber';
 export * from './workflow-executions/workflow-execution-completed.event-subscriber';
+export * from './workflow-executions/workflow-execution-failed.event-subscriber';

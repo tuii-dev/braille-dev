@@ -25,10 +25,7 @@ import {
   WorkflowExecutionId,
   WorkflowExecution,
 } from 'apps/workflow/src/domain/models';
-import {
-  SchemaDependencyService,
-  WorkflowMetricsService,
-} from 'apps/workflow/src/services';
+import { SchemaDependencyService } from 'apps/workflow/src/services';
 import { WorkflowCommandResponseDto } from '../../dtos/common/workflow-command-response.dto';
 import { IWorkflowEmittedState } from '../../interfaces/workflow-emitted-state.interface';
 import { IWorkflowTemplate } from '../../interfaces/workflow-template.interface';
@@ -89,7 +86,6 @@ export class RunWorkflowCommandHandler implements ICommandHandler {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly utilsService: UtilsService,
-    private readonly metricsService: WorkflowMetricsService,
     private readonly schemaDependencyService: SchemaDependencyService,
     private readonly workflowTemplateRepository: WorkflowTemplateRepository,
     private readonly workflowExecutionRepository: WorkflowExecutionRepository,
@@ -215,10 +211,6 @@ export class RunWorkflowCommandHandler implements ICommandHandler {
         executionId: executionId.value,
       });
 
-      this.metricsService.incrementTotalWorkflowsStartedCounter({
-        tenantId: tenantId.value,
-        workflowTemplateId: templateId.value,
-      });
       return new WorkflowCommandResponseDto(true, executionId.value, undefined);
     } else {
       return new WorkflowCommandResponseDto(false, undefined, 'INTERRUPTED');

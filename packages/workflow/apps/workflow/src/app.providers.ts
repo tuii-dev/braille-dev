@@ -123,10 +123,12 @@ import {
 } from '@app/common/shared/event-sourcing/domain/events';
 
 import {
+  WorkflowExecutionStartedEventSubscriber,
   WorkflowExecutionCompletedEventSubscriber,
+  WorkflowExecutionFailedEventSubscriber,
   WorkflowExecutionStepCompletedEventSubscriber,
   WorkflowExecutionStepFailedEventSubscriber,
-  WorkflowExecutionStartedEventSubscriber,
+  WorkflowExecutionStepStartedEventSubscriber,
 } from './domain/events';
 
 import {
@@ -247,10 +249,12 @@ export const SnapshotRepositories: Type<SnapshotRepository>[] = [
 // export const EventPublishers = [CustomEventPublisher];
 
 export const EventSubscribers: Type<IEventSubscriber>[] = [
+  WorkflowExecutionStartedEventSubscriber,
+  WorkflowExecutionFailedEventSubscriber,
   WorkflowExecutionCompletedEventSubscriber,
   WorkflowExecutionStepCompletedEventSubscriber,
   WorkflowExecutionStepFailedEventSubscriber,
-  WorkflowExecutionStartedEventSubscriber,
+  WorkflowExecutionStepStartedEventSubscriber,
 ];
 
 export const EventPublishers = [WorkflowExecutionPublisher];

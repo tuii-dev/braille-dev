@@ -14,6 +14,7 @@ import { WorkflowExecutionRepository } from '@app/application/repositories/workf
 import { WorkflowExecutionNotFoundException } from '@app/domain/exceptions/workflow-execution-not-found.exception';
 import { GraphService } from '@app/services/graph.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { WorkflowMetricsService } from '@app/services/obervability/metrics.service';
 
 @EventSubscriber(WorkflowExecutionStepFailedEvent)
 export class WorkflowExecutionStepFailedEventSubscriber
@@ -21,6 +22,7 @@ export class WorkflowExecutionStepFailedEventSubscriber
 {
   constructor(
     private eventEmitter: EventEmitter2,
+    private readonly metricsService: WorkflowMetricsService,
     private readonly graphService: GraphService,
     private readonly workflowExecutionRepository: WorkflowExecutionRepository,
     @InjectPinoLogger(WorkflowExecutionStepFailedEventSubscriber.name)
@@ -60,8 +62,8 @@ export class WorkflowExecutionStepFailedEventSubscriber
 
     this.logger.info(`Workflow execution found: ${executionId.value}`);
 
-    const status = payload.status;
-    if (status === 'FAILED') {
+    const workflowStatus = event.status;
+    if (workflowStatus === 'FAILED') {
       // Workflow failed, callbackUrl or parentWorkflowExecutionId is required
       this.eventEmitter.emit('workflow.process.end', {
         tenantId: event.tenantId,
@@ -92,6 +94,16 @@ export class WorkflowExecutionStepFailedEventSubscriber
           appId: event.appId,
         });
       }
+    }
+
+    const failedNodeId = event.nodeId;
+    const node = execution.nodes?.find((n) => n.nodeId === failedNodeId);
+    const actionType = node?.actionType ?? 'UNDEFINED';
+
+    this.metricsService.incrementTotalWorkflowStepFailedCounter(actionType);
+
+    if (workflowStatus === 'FAILED') {
+      this.metricsService.incrementTotalWorkflowsFailedCounter();
     }
   }
 }

@@ -7,6 +7,7 @@ export class WorkflowExecutionCompletedEvent implements IEvent {
     public readonly tenantId: string,
     public readonly workflowExecutionId: string,
     public readonly status: WorkflowStatus,
+    public readonly startDate: number,
     public readonly endDate: number,
     public readonly callbackUrl?: string,
     public readonly parentWorkflowExecutionId?: string,

@@ -7765,6 +7765,7 @@ __metadata:
     "@nestjs/testing": "npm:^11.0.10"
     "@ocoda/event-sourcing": "npm:^1.1.6"
     "@ocoda/event-sourcing-dynamodb": "npm:^2.1.0"
+    "@opentelemetry/api": "npm:^1.9.0"
     "@opentelemetry/auto-instrumentations-node": "npm:^0.50.0"
     "@opentelemetry/context-async-hooks": "npm:^1.0.0"
     "@opentelemetry/exporter-metrics-otlp-grpc": "npm:^0.48.0"

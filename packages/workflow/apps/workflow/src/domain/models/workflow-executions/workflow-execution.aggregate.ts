@@ -306,12 +306,14 @@ export class WorkflowExecution extends AggregateRoot {
       `Completing workflow: ${this.executionId.value}`,
     );
 
+    const now = new Date().getTime();
     this.applyEvent(
       new WorkflowExecutionCompletedEvent(
         this.tenantId,
         this.executionId.value,
         'COMPLETED',
-        new Date().getTime(),
+        this.startDate ?? now,
+        now,
         this.callbackUrl,
         this.parentWorkflowExecutionId,
         outputs,

@@ -6,33 +6,28 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { WorkflowExecutionCompletedEvent } from './workflow-execution-completed.event';
 import { WorkflowMetricsService } from '@app/services/obervability/metrics.service';
+import { WorkflowExecutionFailedEvent } from './workflow-execution-failed.event';
 
-@EventSubscriber(WorkflowExecutionCompletedEvent)
-export class WorkflowExecutionCompletedEventSubscriber
+@EventSubscriber(WorkflowExecutionFailedEvent)
+export class WorkflowExecutionFailedEventSubscriber
   implements IEventSubscriber
 {
   constructor(
     private eventEmitter: EventEmitter2,
     private readonly metricsService: WorkflowMetricsService,
-    @InjectPinoLogger(WorkflowExecutionCompletedEventSubscriber.name)
+    @InjectPinoLogger(WorkflowExecutionFailedEventSubscriber.name)
     private readonly logger: PinoLogger,
   ) {}
 
-  handle({ payload }: EventEnvelope<WorkflowExecutionCompletedEvent>) {
+  handle({ payload }: EventEnvelope<WorkflowExecutionFailedEvent>) {
     this.logger.info(
-      `Running WorkflowExecutionCompletedEventSubscriber: ${JSON.stringify(
-        payload,
-      )}`,
+      `Running WorkflowExecutionFailedEvent: ${JSON.stringify(payload)}`,
     );
 
-    const event = payload as WorkflowExecutionCompletedEvent;
+    const event = payload as WorkflowExecutionFailedEvent;
     // Check if the completed node is the last node in the event
 
-    this.metricsService.recordWorkflowCompletionDuration(
-      event.startDate,
-      event.endDate,
-    );
+    this.metricsService.incrementTotalWorkflowsFailedCounter();
   }
 }

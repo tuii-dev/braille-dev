@@ -7,6 +7,7 @@ import {
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkflowExecutionStartedEvent } from './workflow-execution-started.event';
+import { WorkflowMetricsService } from '@app/services/obervability/metrics.service';
 
 @EventSubscriber(WorkflowExecutionStartedEvent)
 export class WorkflowExecutionStartedEventSubscriber
@@ -14,6 +15,7 @@ export class WorkflowExecutionStartedEventSubscriber
 {
   constructor(
     private eventEmitter: EventEmitter2,
+    private readonly metricsService: WorkflowMetricsService,
     @InjectPinoLogger(WorkflowExecutionStartedEventSubscriber.name)
     private readonly logger: PinoLogger,
   ) {}
@@ -44,5 +46,7 @@ export class WorkflowExecutionStartedEventSubscriber
         appId: event.appId,
       });
     }
+
+    this.metricsService.incrementTotalWorkflowsStartedCounter();
   }
 }
