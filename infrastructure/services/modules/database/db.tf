@@ -74,7 +74,7 @@ resource "aws_db_instance" "service_db" {
   final_snapshot_identifier = "snap-${random_uuid.final_snapshot_identifier.result}"
   storage_type              = "gp2"
   engine                    = "postgres"
-  engine_version            = "15.7"
+  engine_version            = "15.8"
   instance_class            = "db.t4g.medium"
   db_name                   = "application"
   username                  = var.username
