@@ -100,10 +100,14 @@ export class WorkflowExecutionStepFailedEventSubscriber
     const node = execution.nodes?.find((n) => n.nodeId === failedNodeId);
     const actionType = node?.actionType ?? 'UNDEFINED';
 
-    this.metricsService.incrementTotalWorkflowStepFailedCounter(actionType);
+    void this.metricsService.incrementTotalWorkflowStepFailedCounter(
+      actionType,
+      event.workflowExecutionId,
+      failedNodeId,
+    );
 
-    if (workflowStatus === 'FAILED') {
-      this.metricsService.incrementTotalWorkflowsFailedCounter();
-    }
+    // if (workflowStatus === 'FAILED') {
+    //   void this.metricsService.incrementTotalWorkflowsFailedCounter();
+    // }
   }
 }

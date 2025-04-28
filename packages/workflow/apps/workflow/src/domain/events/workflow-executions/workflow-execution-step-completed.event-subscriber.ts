@@ -68,7 +68,8 @@ export class WorkflowExecutionStepCompletedEventSubscriber
       const endDate = node.endDate;
       const actionType = node.actionType ?? 'UNDEFINED';
 
-      this.metricsService.recordWorkflowStepCompletionDuration(
+      void this.metricsService.recordWorkflowStepCompletionDuration(
+        true,
         actionType,
         startDate,
         endDate,

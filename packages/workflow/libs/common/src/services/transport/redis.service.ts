@@ -44,6 +44,44 @@ export class RedisService {
     await this.redisClient.set(key, value, 'EX', ttl);
   }
 
+  async lpush(key: string, value: string) {
+    this.logger.info(`Adding value ${value} to list key: ${key}`);
+    await this.redisClient.lpush(key, value);
+  }
+
+  async ltrim(key: string, start: number, stop: number) {
+    this.logger.info(`Trimming list key: ${key} from ${start} to ${stop}`);
+    await this.redisClient.ltrim(key, start, stop);
+  }
+
+  async lrange(key: string, start: number, stop: number) {
+    this.logger.info(
+      `Getting range from list key: ${key} from ${start} to ${stop}`,
+    );
+    return this.redisClient.lrange(key, start, stop);
+  }
+
+  async zadd(key: string, score: number, member: string) {
+    this.logger.info(
+      `Adding value ${member} with score ${score} to sorted set key: ${key}`,
+    );
+    await this.redisClient.zadd(key, score, member);
+  }
+
+  async zremrangebyscore(key: string, min: number, max: number) {
+    this.logger.info(
+      `Removing values from sorted set key: ${key} with scores between ${min} and ${max}`,
+    );
+    await this.redisClient.zremrangebyscore(key, min, max);
+  }
+
+  async zcount(key: string, min: number, max: number): Promise<number> {
+    this.logger.info(
+      `Counting values in sorted set key: ${key} with scores between ${min} and ${max}`,
+    );
+    return this.redisClient.zcount(key, min, max);
+  }
+
   async close() {
     this.logger.info('Closing Redis connection');
     await this.redisClient.quit();

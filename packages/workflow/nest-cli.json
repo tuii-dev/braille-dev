@@ -4,7 +4,7 @@
   "sourceRoot": "apps/workflow/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true,
+    "webpack": false,
     "tsConfigPath": "apps/workflow/tsconfig.app.json"
   },
   "projects": {

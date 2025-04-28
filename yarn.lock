@@ -7763,6 +7763,7 @@ __metadata:
     "@nestjs/schedule": "npm:^5.0.1"
     "@nestjs/schematics": "npm:^11.0.1"
     "@nestjs/testing": "npm:^11.0.10"
+    "@newrelic/telemetry-sdk": "npm:^0.6.0"
     "@ocoda/event-sourcing": "npm:^1.1.6"
     "@ocoda/event-sourcing-dynamodb": "npm:^2.1.0"
     "@opentelemetry/api": "npm:1.9.0"
@@ -7795,6 +7796,7 @@ __metadata:
     "@types/uuid": "npm:^10.0.0"
     ajv: "npm:^8.17.1"
     ajv-formats: "npm:^3.0.1"
+    async-mutex: "npm:^0.5.0"
     axios: "npm:^1.7.9"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.1"
@@ -8966,6 +8968,13 @@ __metadata:
     "@nestjs/platform-express":
       optional: true
   checksum: 1f46e5ce55178817b8101a0533b92eb5a828ed288281e545f76a3676faf639da44666d880b3621cccc735612f0cb3a33087a81ecca656c0df24b2d2cbddec99a
+  languageName: node
+  linkType: hard
+
+"@newrelic/telemetry-sdk@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@newrelic/telemetry-sdk@npm:0.6.0"
+  checksum: 4c95865d1c3b14bc62fa294ff50280df6cfc1ebf96d29d5433d47d94f407f441cdc717ef36f147e7c9e7ba9e70fd7c9ec42146a6e57ce3fbec1f7d223be647db
   languageName: node
   linkType: hard
 
@@ -19623,6 +19632,15 @@ __metadata:
   version: 3.0.1
   resolution: "async-listen@npm:3.0.1"
   checksum: bb05095530b0237fa31e5dbb7127fb5787266c2279bed18588aa092f27aab0999286746bd42d97a0c495d8dc53e964fbcf556851491eb2057edbe813af93bf7b
+  languageName: node
+  linkType: hard
+
+"async-mutex@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "async-mutex@npm:0.5.0"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  checksum: 9096e6ad6b674c894d8ddd5aa4c512b09bb05931b8746ebd634952b05685608b2b0820ed5c406e6569919ff5fe237ab3c491e6f2887d6da6b6ba906db3ee9c32
   languageName: node
   linkType: hard
 

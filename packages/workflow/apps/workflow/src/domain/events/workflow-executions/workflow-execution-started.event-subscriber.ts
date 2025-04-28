@@ -21,6 +21,7 @@ export class WorkflowExecutionStartedEventSubscriber
   ) {}
 
   handle({ payload }: EventEnvelope<WorkflowExecutionStartedEvent>) {
+    console.log('Running WorkflowExecutionStartedEventSubscriber');
     this.logger.info(
       `Running WorkflowExecutionStartedEventSubscriber: ${JSON.stringify(payload)}`,
     );
@@ -47,6 +48,6 @@ export class WorkflowExecutionStartedEventSubscriber
       });
     }
 
-    this.metricsService.incrementTotalWorkflowsStartedCounter();
+    void this.metricsService.incrementTotalWorkflowsStartedCounter();
   }
 }

@@ -1,0 +1,16 @@
+export enum MetricType {
+  RUNNING_WORKFLOWS_REDIS_KEY = 'metrics:runningWorkflows',
+  RUNNING_WORKFLOW_STEPS_REDIS_KEY = 'metrics:runningWorkflowSteps',
+  WORKFLOW_DURATIONS_REDIS_KEY = 'metrics:workflowDurations',
+  WORKFLOW_STEP_DURATIONS_REDIS_KEY = 'metrics:workflowStepDurations',
+  TOTAL_WORKFLOWS_STARTED = 'total_workflows_started',
+  TOTAL_WORKFLOWS_COMPLETED = 'total_workflows_completed',
+  TOTAL_WORKFLOWS_FAILED = 'total_workflows_failed',
+  TOTAL_WORKFLOWS_RUNNING = 'total_workflows_running',
+  TOTAL_WORKFLOW_STEPS_STARTED = 'total_workflow_steps_started',
+  TOTAL_WORKFLOW_STEPS_COMPLETED = 'total_workflow_steps_completed',
+  TOTAL_WORKFLOW_STEPS_FAILED = 'total_workflow_steps_failed',
+  TOTAL_WORKFLOW_STEPS_RUNNING = 'total_workflow_steps_running',
+  WORKFLOW_DURATION_BUCKET = 'workflow_duration_bucket',
+  WORKFLOW_STEP_DURATION_BUCKET = 'workflow_step_duration_bucket',
+}

@@ -5,7 +5,6 @@ import {
   type IEventSubscriber,
 } from '@ocoda/event-sourcing';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkflowExecutionStepStartedEvent } from './workflow-execution-step-started.event';
 import { WorkflowMetricsService } from '@app/services/obervability/metrics.service';
 
@@ -14,7 +13,6 @@ export class WorkflowExecutionStepStartedEventSubscriber
   implements IEventSubscriber
 {
   constructor(
-    private eventEmitter: EventEmitter2,
     private readonly metricsService: WorkflowMetricsService,
     @InjectPinoLogger(WorkflowExecutionStepStartedEventSubscriber.name)
     private readonly logger: PinoLogger,
@@ -32,6 +30,8 @@ export class WorkflowExecutionStepStartedEventSubscriber
     const node = event.nodes?.find((n) => n.nodeId === nodeId);
     const actionType = node?.actionType ?? 'UNDEFINED';
 
-    this.metricsService.incrementTotalWorkflowStepStartedCounter(actionType);
+    void this.metricsService.incrementTotalWorkflowStepStartedCounter(
+      actionType,
+    );
   }
 }
