@@ -2,7 +2,7 @@
   "apps": [
     {
       "name": "workflow",
-      "script": "./dist/apps/workflow/main.js",
+      "script": "./dist/apps/workflow/apps/workflow/src/main.js",
       "instances": 1,
       "exec_mode": "fork",
       "watch": false,
@@ -12,7 +12,7 @@
     },
     {
       "name": "scheduler",
-      "script": "./dist/apps/scheduler/main.js",
+      "script": "./dist/apps/scheduler/apps/scheduler/src/main.js",
       "instances": 1,
       "exec_mode": "fork",
       "watch": false,
