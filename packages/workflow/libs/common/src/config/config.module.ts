@@ -18,6 +18,7 @@ import * as Joi from 'joi';
         REDIS_HOST: Joi.string().required(),
         AWS_REGION: Joi.string().required(),
         NEW_RELIC_API_KEY: Joi.string().required(),
+        NODE_ENV: Joi.string().default('production'),
       }),
     }),
   ],

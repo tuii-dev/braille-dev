@@ -47,32 +47,7 @@ import { context, trace } from '@opentelemetry/api';
   imports: [
     OpenTelemetryModule.forRoot(),
     EventEmitterModule.forRoot(),
-    EventSourcingModule.forRootAsync<
-      DynamoDBEventStoreConfig,
-      DynamoDBSnapshotStoreConfig
-    >({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (
-        configService: ConfigService,
-      ): {
-        events: any[];
-        eventStore: DynamoDBEventStoreConfig;
-        snapshotStore: DynamoDBSnapshotStoreConfig;
-      } => ({
-        events: [...Events],
-        eventStore: {
-          driver: DynamoDBEventStore,
-          region: configService.get<string>('AWS_REGION'),
-          useDefaultPool: false,
-        },
-        snapshotStore: {
-          driver: DynamoDBSnapshotStore,
-          region: configService.get<string>('AWS_REGION'),
-          useDefaultPool: false,
-        },
-      }),
-    }),
+    getEventSourcingModule(),
     LoggerModule.forRoot({
       pinoHttp: {
         level: 'info',
@@ -137,3 +112,46 @@ import { context, trace } from '@opentelemetry/api';
   ],
 })
 export class AppModule {}
+
+function getEventSourcingModule() {
+  return EventSourcingModule.forRootAsync({
+    imports: [ConfigModule],
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) => {
+      const region = configService.get<string>('AWS_REGION', 'us-east-1');
+      const env = configService.get<string>('NODE_ENV');
+      console.log(`Environment: ${env}`);
+      console.log(`Region: ${region}`);
+      if (env === 'dev') {
+        console.log('Development Config', {
+          env,
+          region,
+        });
+        return {
+          events: [...Events],
+        };
+      } else {
+        console.log('DynamoDB Config:', {
+          region,
+        });
+        const eventStoreConfig: DynamoDBEventStoreConfig = {
+          driver: DynamoDBEventStore,
+          region,
+          useDefaultPool: false,
+        };
+
+        const snapshotStoreConfig: DynamoDBSnapshotStoreConfig = {
+          driver: DynamoDBSnapshotStore,
+          region,
+          useDefaultPool: false,
+        };
+
+        return {
+          events: [...Events],
+          eventStore: eventStoreConfig,
+          snapshotStore: snapshotStoreConfig,
+        };
+      }
+    },
+  });
+}

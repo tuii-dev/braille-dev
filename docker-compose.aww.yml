@@ -1,0 +1,35 @@
+services:
+  # dynamodb:
+  #   image: circleci/dynamodb
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - AWS_REGION=us-east-1
+  #     - AWS_ACCESS_KEY_ID=test
+  #     - AWS_SECRET_ACCESS_KEY=test
+
+  # dynamo-init:
+  #   image: amazonlinux:2
+  #   depends_on:
+  #     - dynamodb
+  #   volumes:
+  #     - ./:/app
+  #   working_dir: /app
+  #   entrypoint:
+  #     ["/bin/bash", "-c", "yum install -y awscli && bash dynamo-tables.sh"]
+  #   # Remove the service after it runs
+  #   restart: "no"
+  #   environment:
+  #     - AWS_ACCESS_KEY_ID=test
+  #     - AWS_SECRET_ACCESS_KEY=test
+  #     - AWS_DEFAULT_REGION=us-east-1
+
+  workflow:
+    # depends_on:
+    #   - dynamodb
+    #   - dynamo-init
+    image: "braille-workflow:latest"
+    ports:
+      - "9001:9001"
+    env_file:
+      - ./packages/workflow/.env

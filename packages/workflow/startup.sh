@@ -4,6 +4,7 @@ echo "Container environment: $NODE_ENV, $BRAILLE_ENV"
 echo "AWS Region: $AWS_REGION"
 echo "Database URL format: ${POSTGRES_PRISMA_URL%%@*}@*****"
 echo "Redis host: $REDIS_HOST"
+echo "DynamoDB host: $DYNAMODB_ENDPOINT"
 
 echo "Checking Postgres connectivity..."
 # Extract host and port from POSTGRES_PRISMA_URL using pure shell
@@ -40,12 +41,6 @@ if [ -n "$AWS_REGION" ]; then
   echo "Note: Full DynamoDB checks skipped in diagnostic script, will be checked by application."
   echo "AWS Region configured: $AWS_REGION"
   
-  if [ -n "$BRAILLE_ENV" ]; then
-    echo "Will check for workspace-prefixed DynamoDB tables: $BRAILLE_ENV-*"
-    echo "Note: Tables with this prefix like '$BRAILLE_ENV-events' should exist for proper operation."
-  else
-    echo "BRAILLE_ENV not set, skipping DynamoDB table prefix check"
-  fi
 else
   echo "AWS_REGION not set, skipping DynamoDB checks"
 fi

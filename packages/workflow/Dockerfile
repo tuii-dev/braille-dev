@@ -40,16 +40,15 @@ FROM base AS runner
 RUN apk add --no-cache libc6-compat wget
 RUN apk update
 WORKDIR /app
-ENV NODE_ENV=production
 
 COPY --from=installer /app/ .
 
 # Add debugging tools
 RUN npm install -g pm2
-WORKDIR /app/packages/workflow
-RUN yarn add aws-sdk --dev
-WORKDIR /app
-RUN apk add --no-cache netcat-openbsd redis
+# WORKDIR /app/packages/workflow
+# RUN yarn add aws-sdk --dev
+# WORKDIR /app
+# RUN apk add --no-cache netcat-openbsd redis
 
 # Copy process.json
 COPY packages/workflow/process.json /app/packages/workflow/process.json
