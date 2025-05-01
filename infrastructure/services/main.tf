@@ -1,15 +1,15 @@
 terraform {
-  # backend "remote" {
-  #   organization = "braille-dev"
+  backend "remote" {
+    organization = "braille-dev"
 
-  #   workspaces {
-  #     prefix = "braille-services-"
-  #   }
-  # }
-
-  backend "local" {
-    path = "terraform.tfstate"
+    workspaces {
+      prefix = "braille-services-"
+    }
   }
+
+  # backend "local" {
+  #   path = "terraform.tfstate"
+  # }
 
   required_providers {
     aws = {
@@ -24,8 +24,8 @@ terraform {
 }
 
 provider "aws" {
-  // region = "ca-central-1"
-  region ="us_east_1" 
+  region = "ca-central-1"
+  # region ="us_east_1" 
 }
 
 provider "aws" {
