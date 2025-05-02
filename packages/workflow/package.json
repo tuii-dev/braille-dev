@@ -38,8 +38,8 @@
   "dependencies": {
     "@amplication/opentelemetry-nestjs": "^5.0.3",
     "@apollo/server": "^4.0.0",
-    "@aws-sdk/client-sns": "^3.758.0",
-    "@aws-sdk/client-sqs": "^3.758.0",
+    "@aws-sdk/client-sns": "3.458.0",
+    "@aws-sdk/client-sqs": "^3.511.0",
     "@jptr/braille-integrations": "workspace:^",
     "@jptr/braille-prisma": "workspace:*",
     "@nestjs/apollo": "^13.1.0",
