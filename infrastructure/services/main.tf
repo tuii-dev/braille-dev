@@ -25,7 +25,7 @@ terraform {
 
 provider "aws" {
   region = "ca-central-1"
-  # region ="us_east_1" 
+  # region ="us-east-1" 
 }
 
 provider "aws" {
