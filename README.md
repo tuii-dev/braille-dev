@@ -55,3 +55,21 @@ variable "LOCALSTACK" {
 
 - [ ] Fix the type definition for the icon to not bypass
 - [x] Create a colour picker in the settings page and hook it up to the workspace actions
+
+### Switching from remote (aws) to local (localstack)
+
+- [ ] Update the main.tf file to use local backend instead of remote
+- [ ] Set the LOCALSTACK variable to true (services variables.tf)
+- [ ] Set aws region to us-east-1
+- [ ] Delete terraform state files
+- [ ] Navigate to `infrastructure/services` and run `terraform init -reconfigure`
+- [ ] Run terraform state list to view all local resources
+
+### Switching from local (localstack) to remote (aws)
+
+- [ ] Update the main.tf file to use local backend instead of remote
+- [ ] Set aws region to ca-central-1 / australia-east-1
+- [ ] Set the LOCALSTACK variable to false (services variables.tf)
+- [ ] Delete terraform state files
+- [ ] Navigate to `infrastructure/services` and run `terraform init -reconfigure`
+- [ ] Run terraform state list to view all remote resources

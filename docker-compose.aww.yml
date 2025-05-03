@@ -1,21 +1,22 @@
 services:
   workflow:
     image: "braille-workflow:latest"
+    container_name: "workflow"
     ports:
       - "9001:9001"
     env_file:
       - ./packages/workflow/.env
 
-  worker:
-    image: "braille-worker:latest"
-    ports:
-      - "9000:9000"
-    env_file:
-      - ./packages/worker/.env
+  # worker:
+  #   image: "braille-worker:latest"
+  #   ports:
+  #     - "9000:9000"
+  #   env_file:
+  #     - ./packages/worker/.env
 
   application:
     depends_on:
-      - worker
+      # - worker
       - workflow
     image: "braille-application:latest"
     ports:
